@@ -1,5 +1,6 @@
 package com.w1sh.wave;
 
+import com.w1sh.wave.example.service.impl.BetterCalculatorServiceImpl;
 import com.w1sh.wave.example.service.impl.CalculatorServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,5 +37,17 @@ class InjectorTest {
         Assertions.assertNotNull(existingComponent);
         Assertions.assertNotNull(component);
         Assertions.assertEquals(existingComponent, component);
+    }
+
+    @Test
+    void should_StoreComponentUsingQualifier_WhenQualifierAnnotationIsPresent(){
+        final BetterCalculatorServiceImpl existingComponent = Context.getComponent(BetterCalculatorServiceImpl.class);
+        injector.inject(BetterCalculatorServiceImpl.class);
+
+        final BetterCalculatorServiceImpl component = Context.getComponent(
+                BetterCalculatorServiceImpl.class, "betterCalculatorService");
+
+        Assertions.assertNull(existingComponent);
+        Assertions.assertNotNull(component);
     }
 }
