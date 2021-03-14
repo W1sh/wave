@@ -1,11 +1,15 @@
 package com.w1sh.wave;
 
 import com.w1sh.wave.annotation.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class Context {
+
+    private static final Logger logger = LoggerFactory.getLogger(Context.class);
 
     private final Map<Class<?>, Object> scope;
     private final Map<String, Object> qualifierMap;
@@ -38,13 +42,23 @@ public class Context {
 
     @SuppressWarnings("unchecked")
     public static <T> T getComponent(Class<T> clazz) {
-        return (T) context.getScope().get(clazz);
+        final T component = (T) context.getScope().get(clazz);
+
+        if (component == null) {
+            logger.error("No component found for class {}", clazz.getSimpleName());
+        }
+        return component;
     }
 
     @SuppressWarnings("unchecked")
     public static <T> T getComponent(Class<T> clazz, String name) {
         String qualifierName = clazz.getPackageName() + "." + name;
-        return (T) context.getQualifierMap().get(qualifierName);
+        final T component = (T) context.getQualifierMap().getOrDefault(qualifierName, null);
+
+        if (component == null) {
+            logger.error("No component found for class {} and name {}", clazz.getSimpleName(), name);
+        }
+        return component;
     }
 
     public Map<Class<?>, Object> getScope() {
