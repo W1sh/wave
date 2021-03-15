@@ -4,7 +4,9 @@ import com.w1sh.wave.annotation.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Context {
@@ -42,12 +44,21 @@ public class Context {
 
     @SuppressWarnings("unchecked")
     public static <T> T getComponent(Class<T> clazz) {
-        final T component = (T) context.getScope().get(clazz);
-
-        if (component == null) {
-            logger.error("No component found for class {}", clazz.getSimpleName());
+        final List<Class<T>> candidates = new ArrayList<>();
+        for (Class<?> scopeClazz : context.getScope().keySet()) {
+            if (clazz.isAssignableFrom(scopeClazz)) candidates.add((Class<T>) scopeClazz);
         }
-        return component;
+
+        if (candidates.isEmpty()) {
+            logger.error("No injection candidate found for class {}", clazz.getSimpleName());
+            return null;
+        } else if (candidates.size() > 1) {
+            logger.error("Multiple injection candidates found for class {}", clazz.getSimpleName());
+            // throw exception
+        }
+
+        final Object instance = context.getScope().get(candidates.get(0));
+        return clazz.cast(instance);
     }
 
     @SuppressWarnings("unchecked")
@@ -56,7 +67,7 @@ public class Context {
         final T component = (T) context.getQualifierMap().getOrDefault(qualifierName, null);
 
         if (component == null) {
-            logger.error("No component found for class {} and name {}", clazz.getSimpleName(), name);
+            logger.error("No injection candidates found for class {} with name {}", clazz.getSimpleName(), name);
         }
         return component;
     }

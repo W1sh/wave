@@ -2,6 +2,7 @@ package com.w1sh.wave;
 
 import com.w1sh.wave.example.service.impl.BetterCalculatorServiceImpl;
 import com.w1sh.wave.example.service.impl.CalculatorServiceImpl;
+import com.w1sh.wave.example.service.impl.MerchantServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,5 +50,16 @@ class InjectorTest {
 
         Assertions.assertNull(existingComponent);
         Assertions.assertNotNull(component);
+    }
+
+    @Test
+    void should_CreateNewInstance_WhenNoneIsPresentAndAllConstructorParamsPresentInContext(){
+        injector.inject(CalculatorServiceImpl.class);
+        injector.inject(MerchantServiceImpl.class);
+
+        final MerchantServiceImpl component = Context.getComponent(MerchantServiceImpl.class);
+
+        Assertions.assertNotNull(component);
+        Assertions.assertNotNull(component.getCalculatorService());
     }
 }

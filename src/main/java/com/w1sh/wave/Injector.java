@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.Set;
 
 public class Injector {
@@ -52,18 +51,26 @@ public class Injector {
     }
 
     protected void injectViaConstructor(Class<?> classToInject, Constructor<?> constructor){
-        final Class<?>[] parameterTypes = constructor.getParameterTypes();
-        final Annotation[][] parameterAnnotations = constructor.getParameterAnnotations();
-        final Object[] params = new Object[parameterTypes.length];
+        final Class<?>[] paramTypes = constructor.getParameterTypes();
+        final Qualifier[] qualifiers = new Qualifier[paramTypes.length];
+        final Annotation[][] paramAnnotations = constructor.getParameterAnnotations();
+        final Object[] params = new Object[paramTypes.length];
 
-        for (int i = 0; i < parameterTypes.length; i++) {
-            if (Arrays.stream(parameterAnnotations[i])
-                    .anyMatch(a -> a.annotationType().isAnnotationPresent(Qualifier.class))) {
-                // get the qualified component
+        for (int i = 0; i < paramAnnotations.length; i++) {
+            for (Annotation annotation : paramAnnotations[i]) {
+                if (annotation instanceof Qualifier) {
+                    qualifiers[i] = (Qualifier) annotation;
+                    break;
+                }
             }
-            params[i] = Context.getComponent(parameterTypes[1]);
         }
 
+        for (int i = 0; i < paramTypes.length; i++) {
+            params[i] = qualifiers[i] != null ? Context.getComponent(paramTypes[i], qualifiers[i].name()) :
+                    Context.getComponent(paramTypes[i]);
+        }
+
+        createInstance(classToInject, constructor, params);
     }
 
     private void createInstance(Class<?> classToInject, Constructor<?> constructor, Object... params) {
