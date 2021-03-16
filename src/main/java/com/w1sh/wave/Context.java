@@ -86,6 +86,11 @@ public class Context {
         return clazz.cast(candidates.get(0));
     }
 
+    public static void clearContext(){
+        context.getScope().clear();
+        context.getQualifierMap().clear();
+    }
+
     public Map<Class<?>, Object> getScope() {
         return scope;
     }
