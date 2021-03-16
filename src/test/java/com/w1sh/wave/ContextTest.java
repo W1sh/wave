@@ -13,18 +13,42 @@ class ContextTest {
     }
 
     @Test
-    void should_ReturnNull_WhenNoComponentIsPresentInContextForGivenClass(){
-        final BetterCalculatorServiceImpl component = Context.getComponent(
-                BetterCalculatorServiceImpl.class);
+    void should_ThrowException_WhenNoComponentIsPresentInContextForGivenClass(){
+        ComponentCreationException exception = Assertions.assertThrows(ComponentCreationException.class, () -> {
+            Context.getComponent(BetterCalculatorServiceImpl.class);
+        });
 
-        Assertions.assertNull(component);
+        Assertions.assertNotNull(exception);
+        Assertions.assertNotNull(exception.getMessage());
     }
 
     @Test
-    void should_ReturnNull_WhenNoComponentIsPresentInContextForGivenClassAndName(){
-        final BetterCalculatorServiceImpl component = Context.getComponent(
-                BetterCalculatorServiceImpl.class, "betterCalculatorService");
+    void should_ThrowException_WhenMultipleCandidatesArePresentInContextForGivenClass(){
+        /*ComponentCreationException exception = Assertions.assertThrows(ComponentCreationException.class, () -> {
+            Context.getComponent(BetterCalculatorServiceImpl.class);
+        });
 
-        Assertions.assertNull(component);
+        Assertions.assertNotNull(exception);
+        Assertions.assertNotNull(exception.getMessage());*/
+    }
+
+    @Test
+    void should_ThrowException_WhenNoComponentIsPresentInContextForGivenClassAndName(){
+        ComponentCreationException exception = Assertions.assertThrows(ComponentCreationException.class, () -> {
+            Context.getComponent(BetterCalculatorServiceImpl.class, "betterCalculatorService");
+        });
+
+        Assertions.assertNotNull(exception);
+        Assertions.assertNotNull(exception.getMessage());
+    }
+
+    @Test
+    void should_ThrowException_WhenMultipleCandidatesArePresentInContextForGivenClassAndName(){
+        /*ComponentCreationException exception = Assertions.assertThrows(ComponentCreationException.class, () -> {
+            Context.getComponent(BetterCalculatorServiceImpl.class);
+        });
+
+        Assertions.assertNotNull(exception);
+        Assertions.assertNotNull(exception.getMessage());*/
     }
 }

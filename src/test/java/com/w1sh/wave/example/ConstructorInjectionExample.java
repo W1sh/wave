@@ -5,7 +5,7 @@ import com.w1sh.wave.example.service.MerchantService;
 
 public class ConstructorInjectionExample {
 
-    private MerchantService merchantService;
+    private final MerchantService merchantService;
 
     @Inject
     public ConstructorInjectionExample(MerchantService merchantService) {

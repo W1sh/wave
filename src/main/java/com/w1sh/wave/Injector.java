@@ -73,12 +73,8 @@ public class Injector {
         try {
             final Object instance = constructor.newInstance(params);
             Context.addComponent(classToInject, instance);
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            logger.error("Unable to create an instance of the class {}", classToInject, e);
         }
     }
 }

@@ -7,8 +7,8 @@ import com.w1sh.wave.example.service.MerchantService;
 
 public class ConstructorInjectionWithQualifierExample {
 
-    private MerchantService merchantService;
-    private CalculatorService calculatorService;
+    private final MerchantService merchantService;
+    private final CalculatorService calculatorService;
 
     @Inject
     public ConstructorInjectionWithQualifierExample(MerchantService merchantService,
