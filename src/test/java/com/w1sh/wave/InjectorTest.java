@@ -1,5 +1,6 @@
 package com.w1sh.wave;
 
+import com.w1sh.wave.example.ConstructorInjectionWithQualifierExample;
 import com.w1sh.wave.example.service.impl.BetterCalculatorServiceImpl;
 import com.w1sh.wave.example.service.impl.CalculatorServiceImpl;
 import com.w1sh.wave.example.service.impl.MerchantServiceImpl;
@@ -60,6 +61,19 @@ class InjectorTest {
         final MerchantServiceImpl component = Context.getComponent(MerchantServiceImpl.class);
 
         Assertions.assertNotNull(component);
+        Assertions.assertNotNull(component.getCalculatorService());
+    }
+
+    @Test
+    void should_CreateNewInstanceWithQualifierParameters_WhenNoneIsPresentAndAllConstructorParamsPresentInContext(){
+        injector.inject(CalculatorServiceImpl.class);
+        injector.inject(MerchantServiceImpl.class);
+        injector.inject(ConstructorInjectionWithQualifierExample.class);
+
+        final ConstructorInjectionWithQualifierExample component = Context.getComponent(ConstructorInjectionWithQualifierExample.class);
+
+        Assertions.assertNotNull(component);
+        Assertions.assertNotNull(component.getMerchantService());
         Assertions.assertNotNull(component.getCalculatorService());
     }
 }

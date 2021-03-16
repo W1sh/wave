@@ -42,34 +42,46 @@ public class Context {
         context.getQualifierMap().put(qualifierName, instance);
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> T getComponent(Class<T> clazz) {
-        final List<Class<T>> candidates = new ArrayList<>();
+        final List<Object> candidates = new ArrayList<>();
         for (Class<?> scopeClazz : context.getScope().keySet()) {
-            if (clazz.isAssignableFrom(scopeClazz)) candidates.add((Class<T>) scopeClazz);
+            if (clazz.isAssignableFrom(scopeClazz)){
+                candidates.add(context.getScope().get(scopeClazz));
+            }
         }
 
         if (candidates.isEmpty()) {
             logger.error("No injection candidate found for class {}", clazz.getSimpleName());
+            // throw exception
             return null;
         } else if (candidates.size() > 1) {
             logger.error("Multiple injection candidates found for class {}", clazz.getSimpleName());
             // throw exception
+            return null;
         }
 
-        final Object instance = context.getScope().get(candidates.get(0));
-        return clazz.cast(instance);
+        return clazz.cast(candidates.get(0));
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> T getComponent(Class<T> clazz, String name) {
-        String qualifierName = clazz.getPackageName() + "." + name;
-        final T component = (T) context.getQualifierMap().getOrDefault(qualifierName, null);
-
-        if (component == null) {
-            logger.error("No injection candidates found for class {} with name {}", clazz.getSimpleName(), name);
+        final List<Object> candidates = new ArrayList<>();
+        for (String componentName : context.getQualifierMap().keySet()) {
+            if (componentName.substring(componentName.lastIndexOf('.') + 1).equalsIgnoreCase(name)) {
+                candidates.add(context.getQualifierMap().get(componentName));
+            }
         }
-        return component;
+
+        if (candidates.isEmpty()) {
+            logger.error("No injection candidate found for class {} with name {}", clazz.getSimpleName(), name);
+            // throw exception
+            return null;
+        } else if (candidates.size() > 1) {
+            logger.error("Multiple injection candidates found for class {} with name {}", clazz.getSimpleName(), name);
+            // throw exception
+            return null;
+        }
+
+        return clazz.cast(candidates.get(0));
     }
 
     public Map<Class<?>, Object> getScope() {
