@@ -33,6 +33,10 @@ public class Context {
     }
 
     public static void addComponent(Class<?> clazz, Object instance) {
+        if (context.getScope().containsKey(clazz)) {
+            logger.warn("Instance of class {} is already present in the context", clazz);
+            return;
+        }
         String qualifierName = clazz.getName();
         if (clazz.isAnnotationPresent(Component.class)) {
             String componentName = clazz.getAnnotation(Component.class).name();
@@ -51,11 +55,11 @@ public class Context {
         }
 
         if (candidates.isEmpty()) {
-            logger.error("No injection candidate found for class {}", clazz.getSimpleName());
+            logger.error("No injection candidate found for class {}", clazz);
             // throw exception
             return null;
         } else if (candidates.size() > 1) {
-            logger.error("Multiple injection candidates found for class {}", clazz.getSimpleName());
+            logger.error("Multiple injection candidates found for class {}", clazz);
             // throw exception
             return null;
         }
@@ -72,11 +76,11 @@ public class Context {
         }
 
         if (candidates.isEmpty()) {
-            logger.error("No injection candidate found for class {} with name {}", clazz.getSimpleName(), name);
+            logger.error("No injection candidate found for class {} with name {}", clazz, name);
             // throw exception
             return null;
         } else if (candidates.size() > 1) {
-            logger.error("Multiple injection candidates found for class {} with name {}", clazz.getSimpleName(), name);
+            logger.error("Multiple injection candidates found for class {} with name {}", clazz, name);
             // throw exception
             return null;
         }

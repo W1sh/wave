@@ -27,11 +27,6 @@ public class Injector {
     }
 
     protected void inject(Class<?> classToInject){
-        if (Context.getComponent(classToInject) != null) {
-            logger.debug("Instance of class {} already exists in the context", classToInject.getSimpleName());
-            return;
-        }
-
         for (Constructor<?> constructor : classToInject.getConstructors()) {
             if (constructor.isAnnotationPresent(Inject.class)) {
                 if (constructor.getParameterCount() == 0) {
