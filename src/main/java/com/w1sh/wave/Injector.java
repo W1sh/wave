@@ -1,30 +1,17 @@
 package com.w1sh.wave;
 
-import com.w1sh.wave.annotation.Component;
 import com.w1sh.wave.annotation.Inject;
 import com.w1sh.wave.annotation.Qualifier;
-import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Set;
 
 public class Injector {
 
     private static final Logger logger = LoggerFactory.getLogger(Injector.class);
-
-    private final Reflections reflections;
-
-    public Injector() {
-        this.reflections = new Reflections("com.w1sh.wave");
-    }
-
-    protected void getClasses(){
-        final Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Component.class);
-    }
 
     protected void inject(Class<?> classToInject){
         for (Constructor<?> constructor : classToInject.getConstructors()) {
