@@ -10,4 +10,6 @@ import java.lang.annotation.Target;
 public @interface Component {
 
     String name() default "";
+
+    boolean lazy() default false;
 }

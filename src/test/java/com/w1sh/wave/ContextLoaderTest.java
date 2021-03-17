@@ -1,5 +1,6 @@
 package com.w1sh.wave;
 
+import com.w1sh.wave.example.service.impl.DuplicateCalculatorServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +15,6 @@ class ContextLoaderTest {
     void setUp() {
         injector = mock(Injector.class);
         contextLoader = new ContextLoader(injector, "com.w1sh.wave");
-        contextLoader.loadClassAnnotatedWithComponent();
         Context.clearContext();
     }
 
@@ -22,6 +22,13 @@ class ContextLoaderTest {
     void should_LoadAllClasses_WhenClassesAreAnnotatedWithComponentAndHaveDesiredPrefix(){
         contextLoader.loadClassAnnotatedWithComponent();
 
-        verify(injector, times(6)).inject(any());
+        verify(injector, times(2)).inject(any());
+    }
+
+    @Test
+    void should_NotInitializeLazyComponents_WhenClassesAreAnnotatedWithComponentAndAreDefinedLazy(){
+        contextLoader.loadClassAnnotatedWithComponent();
+
+        verify(injector, never()).inject(DuplicateCalculatorServiceImpl.class);
     }
 }

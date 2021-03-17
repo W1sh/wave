@@ -25,7 +25,10 @@ public class ContextLoader {
         logger.debug("Found {} classes annotated to be initialized.", classes.size());
 
         for (Class<?> aClass : classes) {
-            injector.inject(aClass);
+            Component component = aClass.getAnnotation(Component.class);
+            if (!component.lazy()) {
+                injector.inject(aClass);
+            }
         }
     }
 }
