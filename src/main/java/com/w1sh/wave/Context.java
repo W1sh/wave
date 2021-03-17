@@ -1,6 +1,7 @@
 package com.w1sh.wave;
 
 import com.w1sh.wave.annotation.Component;
+import com.w1sh.wave.annotation.Primary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,10 +59,8 @@ public class Context {
             logger.error("No injection candidate found for class {}", clazz);
             throw new ComponentCreationException("No injection candidate found for class " + clazz);
         } else if (candidates.size() > 1) {
-            logger.error("Multiple injection candidates found for class {}", clazz);
-            throw new ComponentCreationException("Multiple injection candidates found for class " + clazz);
+            return getPrimaryComponent(candidates, clazz);
         }
-
         return clazz.cast(candidates.get(0));
     }
 
@@ -78,12 +77,29 @@ public class Context {
             throw new ComponentCreationException("No injection candidate found for class " + clazz
                     + " with name " + name);
         } else if (candidates.size() > 1) {
-            logger.error("Multiple injection candidates found for class {} with name {}", clazz, name);
-            throw new ComponentCreationException("Multiple injection candidates found for class " + clazz
-                    + " with name " + name);
+            return getPrimaryComponent(candidates, clazz);
+        }
+        return clazz.cast(candidates.get(0));
+    }
+
+    private static <T> T getPrimaryComponent(List<Object> candidates, Class<T> clazz) {
+        final List<Object> primaryCandidates = new ArrayList<>();
+        for (Object candidate : candidates) {
+            if (candidate.getClass().isAnnotationPresent(Primary.class)) {
+                logger.debug("Primary candidate {} was found for class {}", candidate.getClass(), clazz);
+                primaryCandidates.add(candidate);
+            }
         }
 
-        return clazz.cast(candidates.get(0));
+        if (primaryCandidates.isEmpty()) {
+            logger.warn("Multiple injection candidates found for class {}", clazz);
+            logger.error("No primary candidate was defined for multiple injection candidates for class {}", clazz);
+            throw new ComponentCreationException("Multiple injection candidates found for class " + clazz);
+        } else if (primaryCandidates.size() > 1) {
+            logger.error("Multiple primary injection candidates found for class {}", clazz);
+            throw new ComponentCreationException("Multiple primary injection candidates found for class " + clazz);
+        }
+        return clazz.cast(primaryCandidates.get(0));
     }
 
     public static void clearContext(){

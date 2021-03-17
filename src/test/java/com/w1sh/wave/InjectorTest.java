@@ -1,9 +1,11 @@
 package com.w1sh.wave;
 
 import com.w1sh.wave.example.ConstructorInjectionWithQualifierExample;
+import com.w1sh.wave.example.service.CalculatorService;
 import com.w1sh.wave.example.service.impl.BetterCalculatorServiceImpl;
 import com.w1sh.wave.example.service.impl.CalculatorServiceImpl;
 import com.w1sh.wave.example.service.impl.MerchantServiceImpl;
+import com.w1sh.wave.example.service.impl.PrimaryCalculatorServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,5 +88,16 @@ class InjectorTest {
         Assertions.assertNotNull(component);
         Assertions.assertNotNull(component.getMerchantService());
         Assertions.assertNotNull(component.getCalculatorService());
+    }
+
+    @Test
+    void should_InjectPrimaryComponent_WhenMultipleComponentsArePresentInContextForGivenClass(){
+        injector.inject(CalculatorServiceImpl.class);
+        injector.inject(PrimaryCalculatorServiceImpl.class);
+
+        final CalculatorService component = Context.getComponent(CalculatorService.class);
+
+        Assertions.assertNotNull(component);
+        Assertions.assertEquals(PrimaryCalculatorServiceImpl.class, component.getClass());
     }
 }

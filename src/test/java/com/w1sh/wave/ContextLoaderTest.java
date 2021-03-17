@@ -22,7 +22,7 @@ class ContextLoaderTest {
     void should_LoadAllClasses_WhenClassesAreAnnotatedWithComponentAndHaveDesiredPrefix(){
         contextLoader.loadClassAnnotatedWithComponent();
 
-        verify(injector, times(2)).inject(any());
+        verify(injector, times(3)).inject(any());
     }
 
     @Test

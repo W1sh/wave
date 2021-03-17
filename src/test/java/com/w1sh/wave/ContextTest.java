@@ -34,7 +34,7 @@ class ContextTest {
     }
 
     @Test
-    void should_ThrowException_WhenMultipleCandidatesArePresentInContextForGivenClass(){
+    void should_ThrowException_WhenMultipleCandidatesArePresentInContextForGivenClassAndNoneArePrimary(){
         String message = "Multiple injection candidates found";
         CalculatorServiceImpl calculatorService = new CalculatorServiceImpl();
         BetterCalculatorServiceImpl betterCalculatorService = new BetterCalculatorServiceImpl();
@@ -63,7 +63,7 @@ class ContextTest {
     }
 
     @Test
-    void should_ThrowException_WhenMultipleCandidatesArePresentInContextForGivenClassAndName(){
+    void should_ThrowException_WhenMultipleCandidatesArePresentInContextForGivenClassAndNameAndNoneArePrimary(){
         String message = "Multiple injection candidates found";
         CalculatorServiceImpl calculatorService = new CalculatorServiceImpl();
         DuplicateCalculatorServiceImpl duplicateCalculatorService = new DuplicateCalculatorServiceImpl();
