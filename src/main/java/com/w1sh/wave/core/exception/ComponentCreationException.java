@@ -1,4 +1,4 @@
-package com.w1sh.wave;
+package com.w1sh.wave.core.exception;
 
 public class ComponentCreationException extends RuntimeException {
 

@@ -1,4 +1,4 @@
-package com.w1sh.wave.annotation;
+package com.w1sh.wave.core.annotation;
 
 import java.lang.annotation.*;
 

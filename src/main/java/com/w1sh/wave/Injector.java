@@ -1,7 +1,7 @@
 package com.w1sh.wave;
 
-import com.w1sh.wave.annotation.Inject;
-import com.w1sh.wave.annotation.Qualifier;
+import com.w1sh.wave.core.annotation.Inject;
+import com.w1sh.wave.core.annotation.Qualifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

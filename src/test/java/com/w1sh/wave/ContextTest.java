@@ -1,5 +1,6 @@
 package com.w1sh.wave;
 
+import com.w1sh.wave.core.exception.ComponentCreationException;
 import com.w1sh.wave.example.service.CalculatorService;
 import com.w1sh.wave.example.service.impl.BetterCalculatorServiceImpl;
 import com.w1sh.wave.example.service.impl.CalculatorServiceImpl;

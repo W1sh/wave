@@ -1,6 +1,6 @@
 package com.w1sh.wave.example.service.impl;
 
-import com.w1sh.wave.annotation.Inject;
+import com.w1sh.wave.core.annotation.Inject;
 import com.w1sh.wave.example.service.CalculatorService;
 import com.w1sh.wave.example.service.MerchantService;
 

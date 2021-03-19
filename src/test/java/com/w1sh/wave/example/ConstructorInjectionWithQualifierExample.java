@@ -1,7 +1,7 @@
 package com.w1sh.wave.example;
 
-import com.w1sh.wave.annotation.Inject;
-import com.w1sh.wave.annotation.Qualifier;
+import com.w1sh.wave.core.annotation.Inject;
+import com.w1sh.wave.core.annotation.Qualifier;
 import com.w1sh.wave.example.service.CalculatorService;
 import com.w1sh.wave.example.service.MerchantService;
 

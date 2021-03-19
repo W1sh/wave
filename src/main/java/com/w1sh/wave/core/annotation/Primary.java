@@ -1,4 +1,4 @@
-package com.w1sh.wave.annotation;
+package com.w1sh.wave.core.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,9 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Component {
+public @interface Primary {
 
-    String name() default "";
-
-    boolean lazy() default false;
 }

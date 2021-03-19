@@ -1,6 +1,6 @@
 package com.w1sh.wave.example;
 
-import com.w1sh.wave.annotation.Inject;
+import com.w1sh.wave.core.annotation.Inject;
 import com.w1sh.wave.example.service.MerchantService;
 
 public class ConstructorInjectionExample {
