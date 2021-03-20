@@ -1,8 +1,5 @@
-package com.w1sh.wave.core.impl;
+package com.w1sh.wave.core;
 
-import com.w1sh.wave.core.ComponentDefinition;
-import com.w1sh.wave.core.ComponentScanner;
-import com.w1sh.wave.core.InjectionPoint;
 import com.w1sh.wave.core.annotation.Component;
 import com.w1sh.wave.core.annotation.Inject;
 import com.w1sh.wave.core.annotation.Primary;

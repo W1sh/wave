@@ -1,8 +1,5 @@
-package com.w1sh.wave.core.impl;
+package com.w1sh.wave.core;
 
-import com.w1sh.wave.core.ComponentDefinition;
-import com.w1sh.wave.core.ComponentDefinitionResolver;
-import com.w1sh.wave.core.ComponentRegistry;
 import com.w1sh.wave.core.exception.ComponentCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

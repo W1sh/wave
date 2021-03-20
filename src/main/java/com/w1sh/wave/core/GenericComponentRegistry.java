@@ -1,6 +1,5 @@
-package com.w1sh.wave.core.impl;
+package com.w1sh.wave.core;
 
-import com.w1sh.wave.core.ComponentRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
