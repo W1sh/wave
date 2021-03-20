@@ -3,6 +3,7 @@ package com.w1sh.wave.core;
 public class ComponentDefinition {
 
     private final Class<?> clazz;
+    private InjectionPoint injectionPoint;
     private String name;
     private boolean primary;
     private boolean lazy;
@@ -13,6 +14,14 @@ public class ComponentDefinition {
 
     public Class<?> getClazz() {
         return clazz;
+    }
+
+    public InjectionPoint getInjectionPoint() {
+        return injectionPoint;
+    }
+
+    public void setInjectionPoint(InjectionPoint injectionPoint) {
+        this.injectionPoint = injectionPoint;
     }
 
     public String getName() {
