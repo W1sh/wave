@@ -24,9 +24,9 @@ public class GenericComponentScanner implements ComponentScanner {
     }
 
     @Override
-    public Set<ComponentDefinition> scan() {
+    public Set<AbstractComponentDefinition> scan() {
         final Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Component.class);
-        final Set<ComponentDefinition> componentDefinitions = new HashSet<>();
+        final Set<AbstractComponentDefinition> componentDefinitions = new HashSet<>();
         logger.debug("Found {} classes annotated to be initialized.", classes.size());
 
         for (Class<?> aClass : classes) {
@@ -35,9 +35,9 @@ public class GenericComponentScanner implements ComponentScanner {
         return componentDefinitions;
     }
 
-    private ComponentDefinition toComponentDefinition(Class<?> aClass) {
+    private AbstractComponentDefinition toComponentDefinition(Class<?> aClass) {
         logger.debug("Creating component definition from class {}.", aClass);
-        final ComponentDefinition definition = new ComponentDefinition(aClass);
+        final AbstractComponentDefinition definition = new ComponentDefinition(aClass);
         final Component componentAnnotation = aClass.getAnnotation(Component.class);
 
         if (aClass.isAnnotationPresent(Primary.class)) {

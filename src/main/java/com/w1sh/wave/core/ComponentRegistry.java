@@ -4,9 +4,11 @@ import java.util.Set;
 
 public interface ComponentRegistry {
 
-    void register(ComponentDefinition componentDefinition);
+    void register();
 
-    void fillWithComponentMetadata(Set<ComponentDefinition> definitions);
+    void register(AbstractComponentDefinition componentDefinition);
+
+    void fillWithComponentMetadata(Set<AbstractComponentDefinition> definitions);
 
     <T> T getComponent(Class<T> clazz);
 

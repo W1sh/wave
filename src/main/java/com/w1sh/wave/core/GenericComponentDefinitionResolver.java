@@ -18,7 +18,7 @@ public class GenericComponentDefinitionResolver implements ComponentDefinitionRe
     }
 
     @Override
-    public Object resolve(ComponentDefinition definition) {
+    public Object resolve(AbstractComponentDefinition definition) {
         final Object[] params = new Object[definition.getInjectionPoint().getParameterTypes().length];
 
         for (int i = 0; i < definition.getInjectionPoint().getParameterTypes().length; i++) {

@@ -4,5 +4,5 @@ import java.util.Set;
 
 public interface ComponentScanner {
 
-    Set<ComponentDefinition> scan();
+    Set<AbstractComponentDefinition> scan();
 }

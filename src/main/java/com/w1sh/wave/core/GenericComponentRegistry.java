@@ -23,7 +23,14 @@ public class GenericComponentRegistry implements ComponentRegistry {
     }
 
     @Override
-    public void register(ComponentDefinition definition) {
+    public void register() {
+        for (AbstractComponentDefinition definition : clazzDefinition.values()) {
+            register(definition);
+        }
+    }
+
+    @Override
+    public void register(AbstractComponentDefinition definition) {
         final Object instance = definitionResolver.resolve(definition);
         scope.put(definition.getClazz(), instance);
         if (!definition.getName().isBlank()) {
@@ -32,8 +39,8 @@ public class GenericComponentRegistry implements ComponentRegistry {
     }
 
     @Override
-    public void fillWithComponentMetadata(Set<ComponentDefinition> definitions) {
-        for (ComponentDefinition definition : definitions) {
+    public void fillWithComponentMetadata(Set<AbstractComponentDefinition> definitions) {
+        for (AbstractComponentDefinition definition : definitions) {
             clazzDefinition.put(definition.getClazz(), definition);
         }
     }
