@@ -85,9 +85,9 @@ public class GenericComponentScanner implements ComponentScanner {
     }
 
     private String createComponentName(Class<?> aClass, String name) {
-        if (name.isBlank()) {
+        if (!name.isBlank()) {
             return aClass.getPackageName() + "." + name;
         }
-        return aClass.getName();
+        return "";
     }
 }
