@@ -1,10 +1,18 @@
 package com.w1sh.wave.core;
 
+import java.util.Set;
+
 public interface ComponentRegistry {
 
-    <T> void register(Class<T> clazz, Object instance);
+    void register(ComponentDefinition componentDefinition);
+
+    void fillWithComponentMetadata(Set<ComponentDefinition> definitions);
 
     <T> T getComponent(Class<T> clazz);
 
     <T> T getComponent(Class<T> clazz, String name);
+
+    void clearComponentMetadata();
+
+    void clear();
 }
