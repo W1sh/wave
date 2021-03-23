@@ -2,9 +2,9 @@ package com.w1sh.wave.core;
 
 import java.util.Set;
 
-public class GenericApplicationContext extends AbstractApplicationContext {
+public class ApplicationContext extends AbstractApplicationContext {
 
-    public GenericApplicationContext(ComponentRegistry registry, ComponentScanner scanner) {
+    public ApplicationContext(ComponentRegistry registry, ComponentScanner scanner) {
         super(registry, scanner);
     }
 
