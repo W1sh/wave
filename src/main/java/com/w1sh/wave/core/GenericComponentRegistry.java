@@ -4,45 +4,65 @@ import com.w1sh.wave.core.exception.ComponentCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GenericComponentRegistry implements ComponentRegistry {
 
     private static final Logger logger = LoggerFactory.getLogger(GenericComponentRegistry.class);
 
     private final ComponentDefinitionResolver definitionResolver;
+    private final ComponentDefinitionFactory definitionFactory;
     private final Map<Class<?>, Object> scope;
     private final Map<Class<?>, AbstractComponentDefinition> clazzDefinition;
     private final Map<String, Object> namedComponents;
 
     public GenericComponentRegistry() {
         this.definitionResolver = new GenericComponentDefinitionResolver(this);
+        this.definitionFactory = new GenericComponentDefinitionFactory();
         scope = new HashMap<>();
         clazzDefinition = new HashMap<>();
         namedComponents = new HashMap<>();
     }
 
     @Override
-    public void register() {
-        for (AbstractComponentDefinition definition : clazzDefinition.values()) {
-            register(definition);
-        }
+    public <T> T register(Class<T> clazz) {
+        return register(definitionFactory.create(clazz));
     }
 
     @Override
-    public void register(AbstractComponentDefinition definition) {
+    public <T> T register(Class<T> clazz, String name) {
+        return register(definitionFactory.create(clazz, name));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T register(AbstractComponentDefinition definition) {
+        clazzDefinition.put(definition.getClazz(), definition);
         final Object instance = definitionResolver.resolve(definition);
         scope.put(definition.getClazz(), instance);
         if (!definition.getName().isBlank()) {
             namedComponents.put(definition.getName(), instance);
         }
+        return (T) instance;
     }
 
     @Override
-    public void fillWithComponentMetadata(Set<AbstractComponentDefinition> definitions) {
-        for (AbstractComponentDefinition definition : definitions) {
-            clazzDefinition.put(definition.getClazz(), definition);
+    public <T> T resolve(Class<T> clazz) {
+        final T component = getComponent(clazz);
+        if (component == null) {
+            return register(clazz);
         }
+        return component;
+    }
+
+    @Override
+    public <T> T resolve(Class<T> clazz, String name) {
+        final T component = getComponent(clazz, name);
+        if (component == null) {
+            return register(clazz, name);
+        }
+        return component;
     }
 
     @Override
@@ -77,8 +97,8 @@ public class GenericComponentRegistry implements ComponentRegistry {
 
     @Override
     public void clear() {
+        clearComponentMetadata();
         scope.clear();
-        clazzDefinition.clear();
         namedComponents.clear();
     }
 

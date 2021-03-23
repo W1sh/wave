@@ -20,9 +20,10 @@ public class GenericApplicationContext extends AbstractApplicationContext {
 
     @Override
     public void initialize() {
-        final Set<AbstractComponentDefinition> scannedDefinitions = this.getScanner().scan();
-        this.getRegistry().fillWithComponentMetadata(scannedDefinitions);
-        this.getRegistry().register();
+        final Set<Class<?>> scannedClasses = this.getScanner().scan();
+        for (Class<?> scannedClass : scannedClasses) {
+            this.getRegistry().register(scannedClass);
+        }
         this.getRegistry().clearComponentMetadata();
     }
 

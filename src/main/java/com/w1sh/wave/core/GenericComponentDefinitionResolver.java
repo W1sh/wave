@@ -25,9 +25,9 @@ public class GenericComponentDefinitionResolver implements ComponentDefinitionRe
             final Class<?> paramClass = definition.getInjectionPoint().getParameterTypes()[i];
             final String name = definition.getInjectionPoint().getQualifiers()[i].name();
             if (!name.isBlank()) {
-                params[i] = registry.getComponent(paramClass, name);
+                params[i] = registry.resolve(paramClass, name);
             } else {
-                params[i] = registry.getComponent(paramClass);
+                params[i] = registry.resolve(paramClass);
             }
         }
 
