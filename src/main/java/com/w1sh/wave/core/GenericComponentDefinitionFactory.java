@@ -52,8 +52,8 @@ public class GenericComponentDefinitionFactory implements ComponentDefinitionFac
         return aClass.getConstructors()[0];
     }
 
-    private InjectionPoint toInjectionPoint(Constructor<?> constructor) {
-        final InjectionPoint injectionPoint = new InjectionPoint(constructor);
+    private <T> AbstractInjectionPoint<T> toInjectionPoint(Constructor<T> constructor) {
+        final AbstractInjectionPoint<T> injectionPoint = new InjectionPoint<>(constructor);
         if (constructor.getParameterCount() == 0) {
             return injectionPoint;
         }
