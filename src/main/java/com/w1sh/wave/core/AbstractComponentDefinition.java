@@ -1,14 +1,14 @@
 package com.w1sh.wave.core;
 
-public abstract class AbstractComponentDefinition {
+public abstract class AbstractComponentDefinition<T> {
 
-    private final Class<?> clazz;
-    private AbstractInjectionPoint injectionPoint;
+    private final Class<T> clazz;
+    private AbstractInjectionPoint<T> injectionPoint;
     private String name;
     private boolean primary;
     private boolean lazy;
 
-    protected AbstractComponentDefinition(Class<?> clazz) {
+    protected AbstractComponentDefinition(Class<T> clazz) {
         this.clazz = clazz;
     }
 
@@ -16,11 +16,11 @@ public abstract class AbstractComponentDefinition {
         return clazz;
     }
 
-    public AbstractInjectionPoint getInjectionPoint() {
+    public AbstractInjectionPoint<T> getInjectionPoint() {
         return injectionPoint;
     }
 
-    public void setInjectionPoint(AbstractInjectionPoint injectionPoint) {
+    public void setInjectionPoint(AbstractInjectionPoint<T> injectionPoint) {
         this.injectionPoint = injectionPoint;
     }
 

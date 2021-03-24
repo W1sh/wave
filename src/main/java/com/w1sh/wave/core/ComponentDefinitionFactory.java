@@ -2,7 +2,7 @@ package com.w1sh.wave.core;
 
 public interface ComponentDefinitionFactory {
 
-    AbstractComponentDefinition create(Class<?> clazz);
+    <T> AbstractComponentDefinition<T> create(Class<T> clazz);
 
-    AbstractComponentDefinition create(Class<?> clazz, String name);
+    <T> AbstractComponentDefinition<T> create(Class<T> clazz, String name);
 }

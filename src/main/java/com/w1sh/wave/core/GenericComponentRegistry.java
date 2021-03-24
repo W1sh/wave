@@ -14,7 +14,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
     private final ComponentDefinitionResolver definitionResolver;
     private final ComponentDefinitionFactory definitionFactory;
     private final Map<Class<?>, Object> scope;
-    private final Map<Class<?>, AbstractComponentDefinition> clazzDefinition;
+    private final Map<Class<?>, AbstractComponentDefinition<?>> clazzDefinition;
     private final Map<String, Object> namedComponents;
 
     public GenericComponentRegistry() {
@@ -37,7 +37,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T register(AbstractComponentDefinition definition) {
+    public <T> T register(AbstractComponentDefinition<?> definition) {
         clazzDefinition.put(definition.getClazz(), definition);
         final Object instance = definitionResolver.resolve(definition);
         scope.put(definition.getClazz(), instance);
@@ -105,7 +105,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
     private <T> T resolveCandidates(Class<T> clazz, Map<Class<?>, Object> candidates){
         final Map<Class<?>, Object> primaryCandidates = new HashMap<>();
         for (Map.Entry<Class<?>, Object> aClass : candidates.entrySet()) {
-            AbstractComponentDefinition definition = clazzDefinition.get(aClass.getKey());
+            AbstractComponentDefinition<?> definition = clazzDefinition.get(aClass.getKey());
 
             if (definition.isPrimary()) {
                 primaryCandidates.put(aClass.getKey(), aClass.getValue());

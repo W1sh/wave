@@ -15,18 +15,18 @@ public class GenericComponentDefinitionFactory implements ComponentDefinitionFac
     private static final Logger logger = LoggerFactory.getLogger(GenericComponentDefinitionFactory.class);
 
     @Override
-    public AbstractComponentDefinition create(Class<?> clazz) {
+    public <T> AbstractComponentDefinition<T> create(Class<T> clazz) {
         return toComponentDefinition(clazz, null);
     }
 
     @Override
-    public AbstractComponentDefinition create(Class<?> clazz, String name) {
+    public <T>AbstractComponentDefinition<T> create(Class<T> clazz, String name) {
         return toComponentDefinition(clazz, name);
     }
 
-    private AbstractComponentDefinition toComponentDefinition(Class<?> aClass, String name) {
+    private <T> AbstractComponentDefinition<T> toComponentDefinition(Class<T> aClass, String name) {
         logger.debug("Creating component definition from class {}.", aClass);
-        final AbstractComponentDefinition definition = new ComponentDefinition(aClass);
+        final AbstractComponentDefinition<T> definition = new ComponentDefinition<>(aClass);
         final Component componentAnnotation = aClass.getAnnotation(Component.class);
 
         if (aClass.isAnnotationPresent(Primary.class)) {
@@ -36,20 +36,21 @@ public class GenericComponentDefinitionFactory implements ComponentDefinitionFac
             definition.setLazy(true);
         }
 
-        final Constructor<?> constructor = findAnnotatedConstructor(aClass);
+        final Constructor<T> constructor = findAnnotatedConstructor(aClass);
         definition.setInjectionPoint(toInjectionPoint(constructor));
         final String componentName = name != null ? name : componentAnnotation.name();
         definition.setName(createComponentName(aClass, componentName));
         return definition;
     }
 
-    private Constructor<?> findAnnotatedConstructor(Class<?> aClass) {
+    @SuppressWarnings("unchecked")
+    private <T> Constructor<T> findAnnotatedConstructor(Class<T> aClass) {
         for (Constructor<?> constructor : aClass.getConstructors()) {
             if (constructor.isAnnotationPresent(Inject.class)) {
-                return constructor;
+                return (Constructor<T>) constructor;
             }
         }
-        return aClass.getConstructors()[0];
+        return (Constructor<T>) aClass.getConstructors()[0];
     }
 
     private <T> AbstractInjectionPoint<T> toInjectionPoint(Constructor<T> constructor) {

@@ -6,7 +6,7 @@ public interface ComponentRegistry {
 
     <T> T register(Class<T> clazz, String name);
 
-    <T> T register(AbstractComponentDefinition componentDefinition);
+    <T> T register(AbstractComponentDefinition<?> componentDefinition);
 
     <T> T resolve(Class<T> clazz);
 
