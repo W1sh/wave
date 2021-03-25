@@ -18,14 +18,17 @@ public class GenericComponentDefinitionResolver implements ComponentDefinitionRe
     }
 
     @Override
-    public Object resolve(AbstractComponentDefinition definition) {
+    public Object resolve(AbstractComponentDefinition<?> definition) {
+        if (definition.getInjectionPoint().getParameterTypes() == null) {
+            return createInstance(definition.getClazz(), definition.getInjectionPoint().getConstructor());
+        }
+
         final Object[] params = new Object[definition.getInjectionPoint().getParameterTypes().length];
 
         for (int i = 0; i < definition.getInjectionPoint().getParameterTypes().length; i++) {
             final Class<?> paramClass = definition.getInjectionPoint().getParameterTypes()[i];
-            final String name = definition.getInjectionPoint().getQualifiers()[i].name();
-            if (!name.isBlank()) {
-                params[i] = registry.resolve(paramClass, name);
+            if (definition.getInjectionPoint().getQualifiers()[i] != null) {
+                params[i] = registry.resolve(paramClass, definition.getInjectionPoint().getQualifiers()[i].name());
             } else {
                 params[i] = registry.resolve(paramClass);
             }
