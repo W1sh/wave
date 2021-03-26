@@ -6,7 +6,6 @@ public abstract class AbstractComponentDefinition<T> {
     private AbstractInjectionPoint<T> injectionPoint;
     private String name;
     private boolean primary;
-    private boolean lazy;
 
     protected AbstractComponentDefinition(Class<T> clazz) {
         this.clazz = clazz;
@@ -38,13 +37,5 @@ public abstract class AbstractComponentDefinition<T> {
 
     public void setPrimary(boolean primary) {
         this.primary = primary;
-    }
-
-    public boolean isLazy() {
-        return lazy;
-    }
-
-    public void setLazy(boolean lazy) {
-        this.lazy = lazy;
     }
 }

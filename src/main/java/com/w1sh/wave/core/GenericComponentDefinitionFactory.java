@@ -32,9 +32,6 @@ public class GenericComponentDefinitionFactory implements ComponentDefinitionFac
         if (aClass.isAnnotationPresent(Primary.class)) {
             definition.setPrimary(true);
         }
-        if (componentAnnotation.lazy()) {
-            definition.setLazy(true);
-        }
 
         final Constructor<T> constructor = findAnnotatedConstructor(aClass);
         definition.setInjectionPoint(toInjectionPoint(constructor));
