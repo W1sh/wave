@@ -10,6 +10,8 @@ public interface ComponentRegistry {
 
     <T> T resolve(Class<T> clazz);
 
+    <T> Lazy<T> resolveLazy(Class<T> clazz);
+
     <T> T resolve(Class<T> clazz, String name);
 
     <T> T getComponent(Class<T> clazz);

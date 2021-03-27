@@ -4,6 +4,8 @@ import com.w1sh.wave.core.exception.ComponentCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,11 +51,17 @@ public class GenericComponentRegistry implements ComponentRegistry {
 
     @Override
     public <T> T resolve(Class<T> clazz) {
-        final T component = getComponent(clazz);
-        if (component == null) {
+        try {
+            return getComponent(clazz);
+        } catch (ComponentCreationException e) {
+            logger.debug("");
             return register(clazz);
         }
-        return component;
+    }
+
+    @Override
+    public <T> Lazy<T> resolveLazy(Class<T> clazz) {
+        return new LazyBinding<>(clazz, this);
     }
 
     @Override

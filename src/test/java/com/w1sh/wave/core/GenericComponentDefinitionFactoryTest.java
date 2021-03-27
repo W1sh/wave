@@ -19,7 +19,6 @@ class GenericComponentDefinitionFactoryTest {
 
         assertComponentDefinitionIsProperlyDefined(definition);
         assertFalse(definition.isPrimary());
-        assertFalse(definition.isLazy());
     }
 
     @Test
@@ -29,7 +28,6 @@ class GenericComponentDefinitionFactoryTest {
 
         assertComponentDefinitionIsProperlyDefined(definition);
         assertFalse(definition.isPrimary());
-        assertTrue(definition.isLazy());
     }
 
     @Test
@@ -39,7 +37,6 @@ class GenericComponentDefinitionFactoryTest {
 
         assertComponentDefinitionIsProperlyDefined(definition);
         assertTrue(definition.isPrimary());
-        assertFalse(definition.isLazy());
     }
 
     @Test
@@ -50,7 +47,6 @@ class GenericComponentDefinitionFactoryTest {
         assertComponentDefinitionIsProperlyDefined(definition);
         assertEquals(1, definition.getInjectionPoint().getParameterTypes().length);
         assertFalse(definition.isPrimary());
-        assertFalse(definition.isLazy());
     }
 
     @Test
@@ -61,7 +57,6 @@ class GenericComponentDefinitionFactoryTest {
         assertComponentDefinitionIsProperlyDefined(definition);
         assertEquals(definition.getClazz().getPackageName() + ".name", definition.getName());
         assertFalse(definition.isPrimary());
-        assertFalse(definition.isLazy());
     }
 
     void assertComponentDefinitionIsProperlyDefined(AbstractComponentDefinition<?> definition) {
