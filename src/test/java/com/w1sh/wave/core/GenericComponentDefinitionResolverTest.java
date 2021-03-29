@@ -20,20 +20,8 @@ class GenericComponentDefinitionResolverTest {
 
         final Object object = resolver.resolve(definition);
 
-        verify(registry, never()).resolve(any());
-        verify(registry, never()).resolve(any(), any());
-        assertNotNull(object);
-    }
-
-    @Test
-    void should_ReturnObject_WhenGivenComponentDefinitionWithParameters(){
-        final AbstractComponentDefinition<MerchantServiceImpl> definition = factory.create(MerchantServiceImpl.class);
-        when(registry.resolve(CalculatorService.class)).thenReturn(new CalculatorServiceImpl());
-
-        final Object object = resolver.resolve(definition);
-
-        verify(registry, times(1)).resolve(CalculatorService.class);
-        verify(registry, never()).resolve(any(), any());
+        verify(registry, never()).register((Class<Object>) any());
+        verify(registry, never()).register(any(), any());
         assertNotNull(object);
     }
 }

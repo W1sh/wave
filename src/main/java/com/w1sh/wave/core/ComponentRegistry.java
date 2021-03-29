@@ -1,24 +1,27 @@
 package com.w1sh.wave.core;
 
+import java.util.Collection;
+import java.util.List;
+
 public interface ComponentRegistry {
+
+    void register(Collection<Class<?>> clazz);
 
     <T> T register(Class<T> clazz);
 
-    <T> T register(Class<T> clazz, String name);
+    <T> T register(String name, Class<T> clazz);
 
     <T> T register(AbstractComponentDefinition<?> componentDefinition);
 
-    <T> T resolve(Class<T> clazz);
-
-    <T> Lazy<T> resolveLazy(Class<T> clazz);
-
-    <T> T resolve(Class<T> clazz, String name);
+    void registerDefinitions(Collection<AbstractComponentDefinition<?>> componentDefinition);
 
     <T> T getComponent(Class<T> clazz);
 
-    <T> T getComponent(Class<T> clazz, String name);
+    Object getComponent(String name);
 
-    void clearComponentMetadata();
+    <T> T getComponent(String name, Class<T> clazz);
+
+    <T> List<T> getComponentsOfType(Class<T> clazz);
 
     void clear();
 }

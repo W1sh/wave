@@ -28,9 +28,9 @@ public class GenericComponentDefinitionResolver implements ComponentDefinitionRe
         for (int i = 0; i < definition.getInjectionPoint().getParameterTypes().length; i++) {
             final Class<?> paramClass = definition.getInjectionPoint().getParameterTypes()[i];
             if (definition.getInjectionPoint().getQualifiers()[i] != null) {
-                params[i] = registry.resolve(paramClass, definition.getInjectionPoint().getQualifiers()[i].name());
+                params[i] = resolveDependency(paramClass, definition.getInjectionPoint().getQualifiers()[i].name());
             } else {
-                params[i] = registry.resolve(paramClass);
+                params[i] = resolveDependency(paramClass);
             }
         }
 
@@ -43,6 +43,24 @@ public class GenericComponentDefinitionResolver implements ComponentDefinitionRe
             return constructor.newInstance(params);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new ComponentCreationException("Unable to create an instance of the class " + classToInject, e);
+        }
+    }
+
+    private <T> T resolveDependency(Class<T> clazz, String name) {
+        try {
+            return registry.getComponent(name, clazz);
+        } catch (ComponentCreationException e) {
+            logger.warn("Required dependency is not yet present in the registry.");
+            return registry.register(name, clazz);
+        }
+    }
+
+    private <T> T resolveDependency(Class<T> clazz) {
+        try {
+            return registry.getComponent(clazz);
+        } catch (ComponentCreationException e) {
+            logger.warn("Required dependency is not yet present in the registry.");
+            return registry.register(clazz);
         }
     }
 }

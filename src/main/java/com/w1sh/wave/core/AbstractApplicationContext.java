@@ -2,11 +2,13 @@ package com.w1sh.wave.core;
 
 public abstract class AbstractApplicationContext {
 
+    private final ComponentDefinitionFactory factory;
+    private final ComponentRegistry registry;
+    private final ComponentScanner scanner;
     private AbstractApplicationEnvironment environment;
-    private ComponentRegistry registry;
-    private ComponentScanner scanner;
 
-    protected AbstractApplicationContext(ComponentRegistry registry, ComponentScanner scanner) {
+    protected AbstractApplicationContext(ComponentDefinitionFactory factory, ComponentRegistry registry, ComponentScanner scanner) {
+        this.factory = factory;
         this.registry = registry;
         this.scanner = scanner;
     }
@@ -29,19 +31,15 @@ public abstract class AbstractApplicationContext {
         this.environment = environment;
     }
 
+    public ComponentDefinitionFactory getFactory() {
+        return factory;
+    }
+
     public ComponentRegistry getRegistry() {
         return registry;
     }
 
-    public void setRegistry(ComponentRegistry registry) {
-        this.registry = registry;
-    }
-
     public ComponentScanner getScanner() {
         return scanner;
-    }
-
-    public void setScanner(ComponentScanner scanner) {
-        this.scanner = scanner;
     }
 }

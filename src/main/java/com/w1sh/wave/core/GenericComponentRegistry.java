@@ -4,43 +4,47 @@ import com.w1sh.wave.core.exception.ComponentCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class GenericComponentRegistry implements ComponentRegistry {
 
     private static final Logger logger = LoggerFactory.getLogger(GenericComponentRegistry.class);
 
     private final ComponentDefinitionResolver definitionResolver;
-    private final ComponentDefinitionFactory definitionFactory;
     private final Map<Class<?>, Object> scope;
     private final Map<Class<?>, AbstractComponentDefinition<?>> clazzDefinition;
     private final Map<String, Object> namedComponents;
 
     public GenericComponentRegistry() {
         this.definitionResolver = new GenericComponentDefinitionResolver(this);
-        this.definitionFactory = new GenericComponentDefinitionFactory();
         scope = new HashMap<>();
         clazzDefinition = new HashMap<>();
         namedComponents = new HashMap<>();
     }
 
     @Override
-    public <T> T register(Class<T> clazz) {
-        return register(definitionFactory.create(clazz));
+    public void register(Collection<Class<?>> clazz) {
+        for (Class<?> aClass : clazz) {
+            final AbstractComponentDefinition<?> definition = clazzDefinition.get(aClass);
+            register(definition);
+        }
     }
 
     @Override
-    public <T> T register(Class<T> clazz, String name) {
-        return register(definitionFactory.create(clazz, name));
+    public <T> T register(Class<T> clazz) {
+        final AbstractComponentDefinition<?> definition = clazzDefinition.get(clazz);
+        return register(definition);
+    }
+
+    @Override
+    public <T> T register(String name, Class<T> clazz) {
+        final AbstractComponentDefinition<?> definition = clazzDefinition.get(clazz);
+        return register(definition);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> T register(AbstractComponentDefinition<?> definition) {
-        clazzDefinition.put(definition.getClazz(), definition);
         final Object instance = definitionResolver.resolve(definition);
         scope.put(definition.getClazz(), instance);
         if (!definition.getName().isBlank()) {
@@ -50,27 +54,8 @@ public class GenericComponentRegistry implements ComponentRegistry {
     }
 
     @Override
-    public <T> T resolve(Class<T> clazz) {
-        try {
-            return getComponent(clazz);
-        } catch (ComponentCreationException e) {
-            logger.debug("");
-            return register(clazz);
-        }
-    }
-
-    @Override
-    public <T> Lazy<T> resolveLazy(Class<T> clazz) {
-        return new LazyBinding<>(clazz, this);
-    }
-
-    @Override
-    public <T> T resolve(Class<T> clazz, String name) {
-        final T component = getComponent(clazz, name);
-        if (component == null) {
-            return register(clazz, name);
-        }
-        return component;
+    public void registerDefinitions(Collection<AbstractComponentDefinition<?>> componentDefinition) {
+        componentDefinition.forEach(definition -> clazzDefinition.put(definition.getClazz(), definition));
     }
 
     @Override
@@ -93,19 +78,30 @@ public class GenericComponentRegistry implements ComponentRegistry {
     }
 
     @Override
-    public <T> T getComponent(Class<T> clazz, String name) {
-        final Object instance = namedComponents.get(name);
+    public Object getComponent(String name) {
+        return namedComponents.getOrDefault(name, null);
+    }
+
+    @Override
+    public <T> T getComponent(String name, Class<T> clazz) {
+        final Object instance = getComponent(name);
         return instance != null ? clazz.cast(instance) : null;
     }
 
     @Override
-    public void clearComponentMetadata() {
-        clazzDefinition.clear();
+    @SuppressWarnings("unchecked")
+    public <T> List<T> getComponentsOfType(Class<T> clazz) {
+        final List<T> candidates = new ArrayList<>();
+        for (Map.Entry<Class<?>, Object> scopeClazz : scope.entrySet()) {
+            if (clazz.isAssignableFrom(scopeClazz.getKey())){
+                candidates.add((T) scopeClazz.getValue());
+            }
+        }
+        return candidates;
     }
 
     @Override
     public void clear() {
-        clearComponentMetadata();
         scope.clear();
         namedComponents.clear();
     }
