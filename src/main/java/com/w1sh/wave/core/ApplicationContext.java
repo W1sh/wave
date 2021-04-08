@@ -1,13 +1,11 @@
 package com.w1sh.wave.core;
 
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ApplicationContext extends AbstractApplicationContext {
 
-    public ApplicationContext(ComponentDefinitionFactory factory, ComponentRegistry registry, ComponentScanner scanner) {
-        super(factory, registry, scanner);
+    public ApplicationContext(ComponentRegistry registry, ComponentScanner scanner) {
+        super(registry, scanner);
     }
 
     @Override
@@ -23,13 +21,9 @@ public class ApplicationContext extends AbstractApplicationContext {
     @Override
     public void initialize() {
         final Set<Class<?>> scannedClasses = this.getScanner().scan();
-        final List<AbstractComponentDefinition<?>> definitions = scannedClasses.stream()
-                .map(c -> this.getFactory().create(c))
-                .collect(Collectors.toList());
-
-        this.getRegistry().registerDefinitions(definitions);
-
-        this.getRegistry().register(scannedClasses);
+        for (Class<?> scannedClass : scannedClasses) {
+            this.getRegistry().register(scannedClass);
+        }
     }
 
     @Override

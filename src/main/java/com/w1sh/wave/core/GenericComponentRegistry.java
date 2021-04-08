@@ -4,47 +4,39 @@ import com.w1sh.wave.core.exception.ComponentCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class GenericComponentRegistry implements ComponentRegistry {
 
     private static final Logger logger = LoggerFactory.getLogger(GenericComponentRegistry.class);
 
+    private final ComponentDefinitionFactory factory;
     private final ComponentDefinitionResolver definitionResolver;
     private final Map<Class<?>, Object> scope;
-    private final Map<Class<?>, AbstractComponentDefinition<?>> clazzDefinition;
+    private final Map<Class<?>, AbstractComponentDefinition<?>> definitions;
     private final Map<String, Object> namedComponents;
 
     public GenericComponentRegistry() {
+        this.factory = new GenericComponentDefinitionFactory();
         this.definitionResolver = new GenericComponentDefinitionResolver(this);
-        scope = new HashMap<>();
-        clazzDefinition = new HashMap<>();
-        namedComponents = new HashMap<>();
+        scope = new HashMap<>(255);
+        definitions = new HashMap<>(255);
+        namedComponents = new HashMap<>(255);
     }
 
-    @Override
-    public void register(Collection<Class<?>> clazz) {
-        for (Class<?> aClass : clazz) {
-            final AbstractComponentDefinition<?> definition = clazzDefinition.get(aClass);
-            register(definition);
-        }
-    }
 
     @Override
     public <T> T register(Class<T> clazz) {
-        final AbstractComponentDefinition<?> definition = clazzDefinition.get(clazz);
+        final AbstractComponentDefinition<T> definition = factory.create(clazz);
         return register(definition);
     }
 
-    @Override
-    public <T> T register(String name, Class<T> clazz) {
-        final AbstractComponentDefinition<?> definition = clazzDefinition.get(clazz);
-        return register(definition);
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
-    public <T> T register(AbstractComponentDefinition<?> definition) {
+    private <T> T register(AbstractComponentDefinition<T> definition) {
         final Object instance = definitionResolver.resolve(definition);
         scope.put(definition.getClazz(), instance);
         if (!definition.getName().isBlank()) {
@@ -53,35 +45,52 @@ public class GenericComponentRegistry implements ComponentRegistry {
         return (T) instance;
     }
 
-    @Override
-    public void registerDefinitions(Collection<AbstractComponentDefinition<?>> componentDefinition) {
-        componentDefinition.forEach(definition -> clazzDefinition.put(definition.getClazz(), definition));
-    }
-
+    /**
+     * Returns the a component of the given class. If no component is found, it will attempt to find one for a subclass
+     * of the given class. If no candidates are found it will throw a {@link ComponentCreationException}.
+     *
+     * @param clazz The {@link Class} of the component
+     * @param <T> The type of the component
+     * @return The component, or null if none was found.
+     * @throws ComponentCreationException if no component is found for the given class.
+     */
     @Override
     public <T> T getComponent(Class<T> clazz) {
-        final Map<Class<?>, Object> candidates = new HashMap<>();
-        for (Map.Entry<Class<?>, Object> scopeClazz : scope.entrySet()) {
-            if (clazz.isAssignableFrom(scopeClazz.getKey())){
-                candidates.put(scopeClazz.getKey(), scopeClazz.getValue());
-            }
+        if (scope.containsKey(clazz)) {
+            return clazz.cast(scope.get(clazz));
         }
 
-        if (candidates.isEmpty()) {
+        final List<T> componentsOfType = getComponentsOfType(clazz);
+        if (componentsOfType.isEmpty()) {
             logger.error("No injection candidate found for class {}", clazz);
             throw new ComponentCreationException("No injection candidate found for class " + clazz);
-        } else if (candidates.size() == 1) {
-            final Object candidate = candidates.values().iterator().next();
-            return clazz.cast(candidate);
+        } else if (componentsOfType.size() == 1) {
+            return clazz.cast(componentsOfType.get(0));
         }
-        return resolveCandidates(clazz, candidates);
+        return resolveCandidates(clazz, componentsOfType);
+
     }
 
+    /**
+     * Returns the component for the given name.
+     *
+     * @param name The name of the component.
+     * @return The component of the given name, or null if none was found.
+     */
     @Override
     public Object getComponent(String name) {
         return namedComponents.getOrDefault(name, null);
     }
 
+    /**
+     * Returns the component for the given name and casts it to the given class. Might throw {@link ClassCastException}
+     * if the component is cast to a subclass of which it is not an instance
+     *
+     * @param name The name of the component.
+     * @param clazz The {@link Class} of the component.
+     * @param <T> The type of the component.
+     * @return The component of the given name, or null if none was found.
+     */
     @Override
     public <T> T getComponent(String name, Class<T> clazz) {
         final Object instance = getComponent(name);
@@ -89,34 +98,32 @@ public class GenericComponentRegistry implements ComponentRegistry {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> List<T> getComponentsOfType(Class<T> clazz) {
         final List<T> candidates = new ArrayList<>();
         for (Map.Entry<Class<?>, Object> scopeClazz : scope.entrySet()) {
             if (clazz.isAssignableFrom(scopeClazz.getKey())){
-                candidates.add((T) scopeClazz.getValue());
+                candidates.add(clazz.cast(scopeClazz.getValue()));
             }
         }
         return candidates;
     }
 
     @Override
+    public boolean containsComponentOfType(Class<?> clazz) {
+        return !getComponentsOfType(clazz).isEmpty();
+    }
+
+    @Override
     public void clear() {
         scope.clear();
+        definitions.clear();
         namedComponents.clear();
     }
 
-    private <T> T resolveCandidates(Class<T> clazz, Map<Class<?>, Object> candidates){
-        final Map<Class<?>, Object> primaryCandidates = new HashMap<>();
-        for (Map.Entry<Class<?>, Object> aClass : candidates.entrySet()) {
-            AbstractComponentDefinition<?> definition = clazzDefinition.get(aClass.getKey());
-
-            if (definition.isPrimary()) {
-                primaryCandidates.put(aClass.getKey(), aClass.getValue());
-            }
-        }
-
-        candidates.keySet().removeAll(primaryCandidates.keySet());
+    private <T> T resolveCandidates(Class<T> clazz, List<T> componentsOfType){
+        final List<T> primaryCandidates = componentsOfType.stream()
+                .filter(component -> definitions.get(component.getClass()).isPrimary())
+                .collect(Collectors.toList());
 
         if (primaryCandidates.isEmpty()) {
             logger.warn("Multiple injection candidates found for class {}", clazz);
@@ -126,7 +133,6 @@ public class GenericComponentRegistry implements ComponentRegistry {
             logger.error("Multiple primary injection candidates found for class {}", clazz);
             throw new ComponentCreationException("Multiple primary injection candidates found for class " + clazz);
         }
-        final Object candidate = primaryCandidates.values().iterator().next();
-        return clazz.cast(candidate);
+        return clazz.cast(primaryCandidates.get(0));
     }
 }
