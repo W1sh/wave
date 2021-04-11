@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 public class GenericComponentDefinitionResolver implements ComponentDefinitionResolver {
 
@@ -25,11 +27,18 @@ public class GenericComponentDefinitionResolver implements ComponentDefinitionRe
 
         final Object[] params = new Object[definition.getInjectionPoint().getParameterTypes().length];
         for (int i = 0; i < definition.getInjectionPoint().getParameterTypes().length; i++) {
-            final Class<?> paramClass = definition.getInjectionPoint().getParameterTypes()[i];
+            final Type paramType = definition.getInjectionPoint().getParameterTypes()[i];
             if (definition.getInjectionPoint().getQualifiers()[i] != null) {
-                params[i] = registry.getComponent(definition.getInjectionPoint().getQualifiers()[i].name(), paramClass);
+                params[i] = registry.getComponent(definition.getInjectionPoint().getQualifiers()[i].name(), (Class<?>) paramType);
             } else {
-                params[i] = registry.getComponent(paramClass);
+                if (paramType instanceof ParameterizedType) {
+                    ParameterizedType parameterizedType = ((ParameterizedType) paramType);
+                    if (parameterizedType.getRawType().equals(Lazy.class)) {
+                        params[i] = new LazyBinding<>((Class<?>) parameterizedType.getActualTypeArguments()[0], registry);
+                    }
+                } else {
+                    params[i] = registry.getComponent((Class<?>) paramType);
+                }
             }
         }
         return createInstance(definition.getClazz(), definition.getInjectionPoint().getConstructor(), params);

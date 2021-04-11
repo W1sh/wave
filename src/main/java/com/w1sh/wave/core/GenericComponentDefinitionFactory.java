@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Type;
 
 public class GenericComponentDefinitionFactory implements ComponentDefinitionFactory {
 
@@ -56,7 +57,7 @@ public class GenericComponentDefinitionFactory implements ComponentDefinitionFac
             return injectionPoint;
         }
 
-        final Class<?>[] parameterTypes = constructor.getParameterTypes();
+        final Type[] parameterTypes = constructor.getGenericParameterTypes();
         final Qualifier[] qualifiers = new Qualifier[constructor.getParameterCount()];
 
         for (int i = 0; i < parameterTypes.length; i++) {
@@ -73,9 +74,6 @@ public class GenericComponentDefinitionFactory implements ComponentDefinitionFac
     }
 
     private String createComponentName(Class<?> aClass, String name) {
-        if (!name.isBlank()) {
-            return aClass.getPackageName() + "." + name;
-        }
-        return "";
+        return !name.isBlank() ? aClass.getPackageName() + "." + name : "";
     }
 }

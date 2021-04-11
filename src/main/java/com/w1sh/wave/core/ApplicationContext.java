@@ -36,4 +36,8 @@ public class ApplicationContext extends AbstractApplicationContext {
     public void clear() {
         this.getRegistry().clear();
     }
+
+    private void register(Class<?> clazz) {
+
+    }
 }

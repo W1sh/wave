@@ -4,6 +4,7 @@ import com.w1sh.wave.core.exception.ComponentCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,8 +31,19 @@ public class GenericComponentRegistry implements ComponentRegistry {
 
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T register(Class<T> clazz) {
+        if (scope.containsKey(clazz)) {
+            return clazz.cast(scope.get(clazz));
+        }
+
         final AbstractComponentDefinition<T> definition = factory.create(clazz);
+        for (Type parameterType : definition.getInjectionPoint().getParameterTypes()) {
+            if (parameterType instanceof Class) {
+                register((Class<T>) parameterType);
+            }
+        }
+
         return register(definition);
     }
 
