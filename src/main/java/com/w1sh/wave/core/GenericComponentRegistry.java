@@ -4,6 +4,7 @@ import com.w1sh.wave.core.exception.ComponentCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,32 +30,44 @@ public class GenericComponentRegistry implements ComponentRegistry {
         namedComponents = new HashMap<>(255);
     }
 
-
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> T register(Class<T> clazz) {
-        if (scope.containsKey(clazz)) {
-            return clazz.cast(scope.get(clazz));
-        }
-
-        final AbstractComponentDefinition<T> definition = factory.create(clazz);
-        for (Type parameterType : definition.getInjectionPoint().getParameterTypes()) {
-            if (parameterType instanceof Class) {
-                register((Class<T>) parameterType);
-            }
-        }
-
-        return register(definition);
+    public void registerMetadata(List<Class<?>> classes) {
+        classes.forEach(c -> definitions.put(c, factory.create(c)));
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> T register(AbstractComponentDefinition<T> definition) {
+    @Override
+    public void register(Class<?> clazz) {
+        if (scope.containsKey(clazz)) {
+            logger.info("Instance of class {} already exists in scope", clazz);
+            return;
+        }
+
+        if (Modifier.isAbstract(clazz.getModifiers())) {
+            final List<? extends AbstractComponentDefinition<?>> definitionsOfType = getDefinitionsOfType(clazz);
+            definitionsOfType.forEach(this::register);
+            return;
+        }
+
+        final AbstractComponentDefinition<?> definition = definitions.get(clazz);
+        for (Type parameterType : definition.getInjectionPoint().getParameterTypes()) {
+            if (parameterType instanceof Class) {
+                if (Modifier.isAbstract(((Class<?>) parameterType).getModifiers())) {
+                    final List<? extends AbstractComponentDefinition<?>> definitionsOfType = getDefinitionsOfType(((Class<?>) parameterType));
+                    definitionsOfType.forEach(this::register);
+                } else {
+                    register((Class<?>) parameterType);
+                }
+            }
+        }
+        register(definition);
+    }
+
+    private void register(AbstractComponentDefinition<?> definition) {
         final Object instance = definitionResolver.resolve(definition);
         scope.put(definition.getClazz(), instance);
         if (!definition.getName().isBlank()) {
             namedComponents.put(definition.getName(), instance);
         }
-        return (T) instance;
     }
 
     /**
@@ -109,6 +122,13 @@ public class GenericComponentRegistry implements ComponentRegistry {
         return instance != null ? clazz.cast(instance) : null;
     }
 
+    /**
+     * Returns all the components that match the given class.
+     *
+     * @param clazz The {@link Class} of the component.
+     * @param <T> The type of the component.
+     * @return A {@link List} containing all the components that matched.
+     */
     @Override
     public <T> List<T> getComponentsOfType(Class<T> clazz) {
         final List<T> candidates = new ArrayList<>();
@@ -120,6 +140,12 @@ public class GenericComponentRegistry implements ComponentRegistry {
         return candidates;
     }
 
+    /**
+     * Checks if one or multiple components match for the given {@link Class}.
+     *
+     * @param clazz The {@link Class} of the component.
+     * @return True if there are components for the given class, false otherwise.
+     */
     @Override
     public boolean containsComponentOfType(Class<?> clazz) {
         return !getComponentsOfType(clazz).isEmpty();
@@ -146,5 +172,16 @@ public class GenericComponentRegistry implements ComponentRegistry {
             throw new ComponentCreationException("Multiple primary injection candidates found for class " + clazz);
         }
         return clazz.cast(primaryCandidates.get(0));
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> List<AbstractComponentDefinition<T>> getDefinitionsOfType(Class<T> clazz) {
+        final List<AbstractComponentDefinition<T>> candidates = new ArrayList<>();
+        for (Map.Entry<Class<?>, AbstractComponentDefinition<?>> scopeClazz : definitions.entrySet()) {
+            if (clazz.isAssignableFrom(scopeClazz.getKey())){
+                candidates.add((AbstractComponentDefinition<T>) scopeClazz.getValue());
+            }
+        }
+        return candidates;
     }
 }

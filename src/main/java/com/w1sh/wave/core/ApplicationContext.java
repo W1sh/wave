@@ -1,5 +1,6 @@
 package com.w1sh.wave.core;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 public class ApplicationContext extends AbstractApplicationContext {
@@ -21,6 +22,7 @@ public class ApplicationContext extends AbstractApplicationContext {
     @Override
     public void initialize() {
         final Set<Class<?>> scannedClasses = this.getScanner().scan();
+        this.getRegistry().registerMetadata(new ArrayList<>(scannedClasses));
         for (Class<?> scannedClass : scannedClasses) {
             this.getRegistry().register(scannedClass);
         }
@@ -35,9 +37,5 @@ public class ApplicationContext extends AbstractApplicationContext {
     @Override
     public void clear() {
         this.getRegistry().clear();
-    }
-
-    private void register(Class<?> clazz) {
-
     }
 }

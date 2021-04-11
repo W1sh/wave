@@ -4,7 +4,9 @@ import java.util.List;
 
 public interface ComponentRegistry {
 
-    <T> T register(Class<T> clazz);
+    void registerMetadata(List<Class<?>> classes);
+
+    void register(Class<?> clazz);
 
     <T> T getComponent(Class<T> clazz);
 
@@ -16,5 +18,8 @@ public interface ComponentRegistry {
 
     boolean containsComponentOfType(Class<?> clazz);
 
+    /**
+     * Clears the registry of all the components and metadata
+     */
     void clear();
 }

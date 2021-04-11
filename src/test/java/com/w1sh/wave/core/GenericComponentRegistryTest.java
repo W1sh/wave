@@ -10,6 +10,7 @@ class GenericComponentRegistryTest {
 
     @Test
     void test(){
+        // TODO: complete
         registry.register(LazyServiceImpl.class);
         registry.register(CalculatorServiceImpl.class);
     }
