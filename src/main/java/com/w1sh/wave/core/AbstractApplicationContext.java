@@ -1,6 +1,6 @@
 package com.w1sh.wave.core;
 
-public abstract class AbstractApplicationContext {
+public abstract class AbstractApplicationContext implements Configurable {
 
     private final ComponentRegistry registry;
     private final ComponentScanner scanner;
@@ -27,6 +27,7 @@ public abstract class AbstractApplicationContext {
 
     public void setEnvironment(AbstractApplicationEnvironment environment) {
         this.environment = environment;
+        this.registry.setEnvironment(environment);
     }
 
     public ComponentRegistry getRegistry() {

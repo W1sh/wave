@@ -22,12 +22,18 @@ public class GenericComponentRegistry implements ComponentRegistry {
     private final Map<Class<?>, AbstractComponentDefinition<?>> definitions;
     private final Map<String, Object> namedComponents;
 
+    private AbstractApplicationEnvironment environment;
+
     public GenericComponentRegistry() {
-        this.factory = new GenericComponentDefinitionFactory();
-        this.definitionResolver = new GenericComponentDefinitionResolver(this);
-        scope = new HashMap<>(255);
-        definitions = new HashMap<>(255);
-        namedComponents = new HashMap<>(255);
+        this(null, null);
+    }
+
+    public GenericComponentRegistry(ComponentDefinitionFactory factory, ComponentDefinitionResolver definitionResolver) {
+        this.scope = new HashMap<>(255);
+        this.definitions = new HashMap<>(255);
+        this.namedComponents = new HashMap<>(255);
+        this.factory = factory != null ? factory : new GenericComponentDefinitionFactory();
+        this.definitionResolver = definitionResolver != null ? definitionResolver : new GenericComponentDefinitionResolver(this);
     }
 
     @Override
@@ -37,7 +43,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
 
     @Override
     public void register(Class<?> clazz) {
-        if (scope.containsKey(clazz)) {
+        if (scope.containsKey(clazz) && !environment.isOverridingEnabled()) {
             logger.info("Instance of class {} already exists in scope", clazz);
             return;
         }
@@ -183,5 +189,15 @@ public class GenericComponentRegistry implements ComponentRegistry {
             }
         }
         return candidates;
+    }
+
+    @Override
+    public AbstractApplicationEnvironment getEnvironment() {
+        return environment;
+    }
+
+    @Override
+    public void setEnvironment(AbstractApplicationEnvironment environment) {
+        this.environment = environment;
     }
 }
