@@ -15,6 +15,8 @@ public abstract class AbstractInjectionPoint<T> {
         this.constructor = constructor;
     }
 
+    public abstract T create(Object[] params);
+
     public Constructor<T> getConstructor() {
         return constructor;
     }

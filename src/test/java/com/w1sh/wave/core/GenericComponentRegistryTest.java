@@ -8,8 +8,7 @@ import org.mockito.Mockito;
 class GenericComponentRegistryTest {
 
     private final ComponentDefinitionFactory factory = Mockito.spy(new GenericComponentDefinitionFactory());
-    private final ComponentDefinitionResolver resolver = new GenericComponentDefinitionResolver(registry);
-    private final ComponentRegistry registry = new GenericComponentRegistry();
+    private final ComponentRegistry registry = new GenericComponentRegistry(factory);
 
     @Test
     void test(){

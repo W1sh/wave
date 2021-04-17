@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,7 +18,6 @@ public class GenericComponentRegistry implements ComponentRegistry {
     private static final Logger logger = LoggerFactory.getLogger(GenericComponentRegistry.class);
 
     private final ComponentDefinitionFactory factory;
-    private final ComponentDefinitionResolver definitionResolver;
     private final Map<Class<?>, Object> scope;
     private final Map<Class<?>, AbstractComponentDefinition<?>> definitions;
     private final Map<String, Object> namedComponents;
@@ -25,15 +25,14 @@ public class GenericComponentRegistry implements ComponentRegistry {
     private AbstractApplicationEnvironment environment;
 
     public GenericComponentRegistry() {
-        this(null, null);
+        this(null);
     }
 
-    public GenericComponentRegistry(ComponentDefinitionFactory factory, ComponentDefinitionResolver definitionResolver) {
+    public GenericComponentRegistry(ComponentDefinitionFactory factory) {
         this.scope = new HashMap<>(255);
         this.definitions = new HashMap<>(255);
         this.namedComponents = new HashMap<>(255);
         this.factory = factory != null ? factory : new GenericComponentDefinitionFactory();
-        this.definitionResolver = definitionResolver != null ? definitionResolver : new GenericComponentDefinitionResolver(this);
     }
 
     @Override
@@ -69,7 +68,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
     }
 
     private void register(AbstractComponentDefinition<?> definition) {
-        final Object instance = definitionResolver.resolve(definition);
+        final Object instance = createInstance(definition);
         scope.put(definition.getClazz(), instance);
         if (!definition.getName().isBlank()) {
             namedComponents.put(definition.getName(), instance);
@@ -189,6 +188,30 @@ public class GenericComponentRegistry implements ComponentRegistry {
             }
         }
         return candidates;
+    }
+
+    private Object createInstance(AbstractComponentDefinition<?> definition) {
+        if (definition.getInjectionPoint().getParameterTypes() == null) {
+            return definition.getInjectionPoint().create(new Object[]{});
+    }
+
+        final Object[] params = new Object[definition.getInjectionPoint().getParameterTypes().length];
+        for (int i = 0; i < definition.getInjectionPoint().getParameterTypes().length; i++) {
+            final Type paramType = definition.getInjectionPoint().getParameterTypes()[i];
+            if (definition.getInjectionPoint().getQualifiers()[i] != null) {
+                params[i] = getComponent(definition.getInjectionPoint().getQualifiers()[i].name(), (Class<?>) paramType);
+            } else {
+                if (paramType instanceof ParameterizedType) {
+                    ParameterizedType parameterizedType = ((ParameterizedType) paramType);
+                    if (parameterizedType.getRawType().equals(Lazy.class)) {
+                        params[i] = new LazyBinding<>((Class<?>) parameterizedType.getActualTypeArguments()[0], this);
+                    }
+                } else {
+                    params[i] = getComponent((Class<?>) paramType);
+                }
+            }
+        }
+        return definition.getInjectionPoint().create(params);
     }
 
     @Override
