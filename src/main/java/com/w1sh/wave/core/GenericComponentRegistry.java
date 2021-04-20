@@ -193,7 +193,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
     private Object createInstance(AbstractComponentDefinition<?> definition) {
         if (definition.getInjectionPoint().getParameterTypes() == null) {
             return definition.getInjectionPoint().create(new Object[]{});
-    }
+        }
 
         final Object[] params = new Object[definition.getInjectionPoint().getParameterTypes().length];
         for (int i = 0; i < definition.getInjectionPoint().getParameterTypes().length; i++) {
@@ -204,7 +204,13 @@ public class GenericComponentRegistry implements ComponentRegistry {
                 if (paramType instanceof ParameterizedType) {
                     ParameterizedType parameterizedType = ((ParameterizedType) paramType);
                     if (parameterizedType.getRawType().equals(Lazy.class)) {
-                        params[i] = new LazyBinding<>((Class<?>) parameterizedType.getActualTypeArguments()[0], this);
+                        if (definition.getInjectionPoint().getQualifiers()[i] != null) {
+                            params[i] = new LazyBinding<>((Class<?>) parameterizedType.getActualTypeArguments()[0],
+                                    definition.getInjectionPoint().getQualifiers()[i].name(), this);
+                        } else {
+                            params[i] = new LazyBinding<>((Class<?>) parameterizedType.getActualTypeArguments()[0],
+                                    this);
+                        }
                     }
                 } else {
                     params[i] = getComponent((Class<?>) paramType);

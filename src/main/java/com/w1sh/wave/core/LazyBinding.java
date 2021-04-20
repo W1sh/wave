@@ -13,6 +13,10 @@ public class LazyBinding<T> implements Lazy<T> {
         this.supplier = () -> context.getComponent(clazz);
     }
 
+    public LazyBinding(Class<T> clazz, String name, ComponentRegistry context) {
+        this.supplier = () -> context.getComponent(name, clazz);
+    }
+
     @Override
     public synchronized T get() {
         if (delegate == null) {
