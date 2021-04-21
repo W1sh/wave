@@ -1,5 +1,6 @@
 package com.w1sh.wave.core;
 
+import com.w1sh.wave.core.annotation.Qualifier;
 import com.w1sh.wave.core.exception.ComponentCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -198,26 +199,32 @@ public class GenericComponentRegistry implements ComponentRegistry {
         final Object[] params = new Object[definition.getInjectionPoint().getParameterTypes().length];
         for (int i = 0; i < definition.getInjectionPoint().getParameterTypes().length; i++) {
             final Type paramType = definition.getInjectionPoint().getParameterTypes()[i];
-            if (definition.getInjectionPoint().getQualifiers()[i] != null) {
-                params[i] = getComponent(definition.getInjectionPoint().getQualifiers()[i].name(), (Class<?>) paramType);
+            final Qualifier qualifier = definition.getInjectionPoint().getQualifiers()[i];
+
+            if (paramType instanceof ParameterizedType) {
+                params[i] = handleParameterizedType((ParameterizedType) paramType, qualifier);
+                break;
+            }
+
+            if (qualifier != null) {
+                params[i] = getComponent(qualifier.name(), (Class<?>) paramType);
             } else {
-                if (paramType instanceof ParameterizedType) {
-                    ParameterizedType parameterizedType = ((ParameterizedType) paramType);
-                    if (parameterizedType.getRawType().equals(Lazy.class)) {
-                        if (definition.getInjectionPoint().getQualifiers()[i] != null) {
-                            params[i] = new LazyBinding<>((Class<?>) parameterizedType.getActualTypeArguments()[0],
-                                    definition.getInjectionPoint().getQualifiers()[i].name(), this);
-                        } else {
-                            params[i] = new LazyBinding<>((Class<?>) parameterizedType.getActualTypeArguments()[0],
-                                    this);
-                        }
-                    }
-                } else {
-                    params[i] = getComponent((Class<?>) paramType);
-                }
+                params[i] = getComponent((Class<?>) paramType);
             }
         }
         return definition.getInjectionPoint().create(params);
+    }
+
+    private Object handleParameterizedType(ParameterizedType type, Qualifier qualifier) {
+        if (type.getRawType().equals(Lazy.class)) {
+            if (qualifier != null) {
+                return new LazyBinding<>((Class<?>) type.getActualTypeArguments()[0], qualifier.name(), this);
+            } else {
+                return new LazyBinding<>((Class<?>) type.getActualTypeArguments()[0], this);
+            }
+        }
+
+        return getComponent((Class<?>) type.getRawType());
     }
 
     @Override
