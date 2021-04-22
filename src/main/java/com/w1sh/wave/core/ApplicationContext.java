@@ -20,6 +20,31 @@ public class ApplicationContext extends AbstractApplicationContext {
     }
 
     @Override
+    public boolean containsComponent(Class<?> clazz) {
+        return this.getRegistry().getComponent(clazz) != null;
+    }
+
+    @Override
+    public boolean containsComponent(String name) {
+        return this.getRegistry().getComponent(name) != null;
+    }
+
+    @Override
+    public Class<?> getType(String name) {
+        final Object component = this.getRegistry().getComponent(name);
+        if (component != null) {
+            return component.getClass();
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isTypeMatch(String name, Class<?> clazz) {
+        final Class<?> type = getType(name);
+        return type != null && type.isAssignableFrom(clazz);
+    }
+
+    @Override
     public void initialize() {
         final Set<Class<?>> scannedClasses = this.getScanner().scan();
         this.getRegistry().registerMetadata(new ArrayList<>(scannedClasses));

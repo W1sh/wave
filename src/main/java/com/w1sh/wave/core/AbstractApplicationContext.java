@@ -15,6 +15,14 @@ public abstract class AbstractApplicationContext implements Configurable {
 
     public abstract <T> T getComponent(Class<T> clazz, String name);
 
+    public abstract boolean containsComponent(Class<?> clazz);
+
+    public abstract boolean containsComponent(String name);
+
+    public abstract Class<?> getType(String name);
+
+    public abstract boolean isTypeMatch(String name, Class<?> clazz);
+
     public abstract void initialize();
 
     public abstract void refresh();
