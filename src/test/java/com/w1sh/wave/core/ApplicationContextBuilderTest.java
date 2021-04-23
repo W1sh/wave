@@ -1,7 +1,9 @@
 package com.w1sh.wave.core;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ApplicationContextBuilderTest {
 
@@ -17,9 +19,9 @@ class ApplicationContextBuilderTest {
                 .setEnvironment(environment)
                 .build();
 
-        Assertions.assertNotNull(context);
-        Assertions.assertEquals(scanner, context.getScanner());
-        Assertions.assertEquals(registry, context.getRegistry());
-        Assertions.assertEquals(environment, context.getEnvironment());
+        assertNotNull(context);
+        assertEquals(scanner, context.getScanner());
+        assertEquals(registry, context.getRegistry());
+        assertEquals(environment, context.getEnvironment());
     }
 }
