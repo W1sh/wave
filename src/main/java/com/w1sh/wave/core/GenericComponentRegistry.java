@@ -95,7 +95,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
         final List<T> componentsOfType = getComponentsOfType(clazz);
         if (componentsOfType.isEmpty()) {
             logger.error("No injection candidate found for class {}", clazz);
-            if (environment.isAllowNullComponents()) return null;
+            if (environment.isNullComponentsAllowed()) return null;
             throw new UnsatisfiedComponentException("No injection candidate found for class " + clazz);
         } else if (componentsOfType.size() == 1) {
             return clazz.cast(componentsOfType.get(0));
@@ -113,7 +113,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
     @Override
     public Object getComponent(String name) {
         final Object component = namedComponents.getOrDefault(name, null);
-        if (component == null && !environment.isAllowNullComponents()) {
+        if (component == null && !environment.isNullComponentsAllowed()) {
             throw new UnsatisfiedComponentException("No injection candidate found with name " + name);
         }
         return component;

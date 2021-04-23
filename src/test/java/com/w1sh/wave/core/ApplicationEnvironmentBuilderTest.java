@@ -15,7 +15,7 @@ class ApplicationEnvironmentBuilderTest {
                 .build();
 
         assertNotNull(environment);
-        assertTrue(environment.isAllowNullComponents());
+        assertTrue(environment.isNullComponentsAllowed());
         assertTrue(environment.isOverridingEnabled());
     }
 }

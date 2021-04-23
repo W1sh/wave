@@ -3,13 +3,13 @@ package com.w1sh.wave.core;
 public abstract class AbstractApplicationEnvironment {
 
     private boolean overridingEnabled;
-    private boolean allowNullComponents;
+    private boolean nullComponentsAllowed;
 
     public AbstractApplicationEnvironment() { }
 
-    public AbstractApplicationEnvironment(boolean overridingEnabled, boolean allowNullComponents) {
+    public AbstractApplicationEnvironment(boolean overridingEnabled, boolean nullComponentsAllowed) {
         this.overridingEnabled = overridingEnabled;
-        this.allowNullComponents = allowNullComponents;
+        this.nullComponentsAllowed = nullComponentsAllowed;
     }
 
     public boolean isOverridingEnabled() {
@@ -20,11 +20,11 @@ public abstract class AbstractApplicationEnvironment {
         this.overridingEnabled = overridingEnabled;
     }
 
-    public boolean isAllowNullComponents() {
-        return allowNullComponents;
+    public boolean isNullComponentsAllowed() {
+        return nullComponentsAllowed;
     }
 
-    public void setAllowNullComponents(boolean allowNullComponents) {
-        this.allowNullComponents = allowNullComponents;
+    public void setNullComponentsAllowed(boolean nullComponentsAllowed) {
+        this.nullComponentsAllowed = nullComponentsAllowed;
     }
 }

@@ -9,6 +9,7 @@ public abstract class AbstractApplicationContext implements Configurable {
     protected AbstractApplicationContext(ComponentRegistry registry, ComponentScanner scanner) {
         this.registry = registry;
         this.scanner = scanner;
+        this.environment = ApplicationEnvironment.builder().build();
     }
 
     protected AbstractApplicationContext(ComponentRegistry registry, ComponentScanner scanner,
