@@ -9,6 +9,14 @@ public class ApplicationContext extends AbstractApplicationContext {
         super(registry, scanner);
     }
 
+    public ApplicationContext(ComponentRegistry registry, ComponentScanner scanner, AbstractApplicationEnvironment environment) {
+        super(registry, scanner, environment);
+    }
+
+    public static ApplicationContextBuilder builder(){
+        return new ApplicationContextBuilder();
+    }
+
     @Override
     public <T> T getComponent(Class<T> clazz) {
         return this.getRegistry().getComponent(clazz);

@@ -11,6 +11,12 @@ public abstract class AbstractApplicationContext implements Configurable {
         this.scanner = scanner;
     }
 
+    protected AbstractApplicationContext(ComponentRegistry registry, ComponentScanner scanner,
+                                         AbstractApplicationEnvironment environment) {
+        this(registry, scanner);
+        this.environment = environment;
+    }
+
     public abstract <T> T getComponent(Class<T> clazz);
 
     public abstract <T> T getComponent(Class<T> clazz, String name);
