@@ -3,6 +3,7 @@ package com.w1sh.wave.core;
 import com.w1sh.wave.core.annotation.Component;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
+import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
@@ -21,7 +22,7 @@ public class GenericComponentScanner implements ComponentScanner {
     public GenericComponentScanner(String packagePrefix) {
         this.reflections = new Reflections(new ConfigurationBuilder()
                 .setUrls(ClasspathHelper.forPackage(packagePrefix))
-                .setScanners(new TypeAnnotationsScanner(), new MethodAnnotationsScanner())
+                .setScanners(new TypeAnnotationsScanner(), new SubTypesScanner(), new MethodAnnotationsScanner())
                 .useParallelExecutor());
         this.packagePrefix = packagePrefix;
     }

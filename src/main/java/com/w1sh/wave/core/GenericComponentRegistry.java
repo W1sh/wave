@@ -1,5 +1,6 @@
 package com.w1sh.wave.core;
 
+import com.w1sh.wave.core.annotation.Nullable;
 import com.w1sh.wave.core.annotation.Qualifier;
 import com.w1sh.wave.core.exception.ComponentCreationException;
 import com.w1sh.wave.core.exception.UnsatisfiedComponentException;
@@ -206,17 +207,14 @@ public class GenericComponentRegistry implements ComponentRegistry {
         for (int i = 0; i < definition.getInjectionPoint().getParameterTypes().length; i++) {
             final Type paramType = definition.getInjectionPoint().getParameterTypes()[i];
             final Qualifier qualifier = definition.getInjectionPoint().getQualifiers()[i];
+            final Nullable nullable = definition.getInjectionPoint().getNullables()[i];
 
             if (paramType instanceof ParameterizedType) {
                 params[i] = handleParameterizedType((ParameterizedType) paramType, qualifier);
                 break;
             }
 
-            if (qualifier != null) {
-                params[i] = getComponent(qualifier.name(), (Class<?>) paramType);
-            } else {
-                params[i] = getComponent((Class<?>) paramType);
-            }
+            params[i] = getComponent((Class<?>) paramType, qualifier, nullable);
         }
         return definition.getInjectionPoint().create(params);
     }
@@ -230,7 +228,22 @@ public class GenericComponentRegistry implements ComponentRegistry {
             }
         }
 
-        return getComponent((Class<?>) type.getRawType());
+        return getComponent((Class<?>) type.getRawType(), qualifier, null);
+    }
+
+    private Object getComponent(Class<?> clazz, Qualifier qualifier, Nullable nullable) {
+        try {
+            if (qualifier != null) {
+                return getComponent(qualifier.name(), clazz);
+            } else {
+                return getComponent(clazz);
+            }
+        } catch (UnsatisfiedComponentException e) {
+            if (nullable != null) {
+                return null;
+            }
+            throw e;
+        }
     }
 
     @Override

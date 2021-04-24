@@ -16,7 +16,7 @@
         <reflections.version>0.9.12</reflections.version>
         <junit.version>5.7.0</junit.version>
         <slf4j.version>1.7.30</slf4j.version>
-        <mokcito.version>2.21.0</mokcito.version>
+        <mockito.version>2.21.0</mockito.version>
     </properties>
 
     <dependencies>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>${mokcito.version}</version>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -48,7 +48,6 @@
             <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
 </project>

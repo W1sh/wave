@@ -1,9 +1,6 @@
 package com.w1sh.wave.core;
 
-import com.w1sh.wave.core.annotation.Component;
-import com.w1sh.wave.core.annotation.Inject;
-import com.w1sh.wave.core.annotation.Primary;
-import com.w1sh.wave.core.annotation.Qualifier;
+import com.w1sh.wave.core.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,17 +56,20 @@ public class GenericComponentDefinitionFactory implements ComponentDefinitionFac
 
         final Type[] parameterTypes = constructor.getGenericParameterTypes();
         final Qualifier[] qualifiers = new Qualifier[constructor.getParameterCount()];
+        final Nullable[] nullables = new Nullable[constructor.getParameterCount()];
 
         for (int i = 0; i < parameterTypes.length; i++) {
             for (Annotation annotation : constructor.getParameterAnnotations()[i]) {
                 if (annotation instanceof Qualifier) {
                     qualifiers[i] = (Qualifier) annotation;
-                    break;
+                } else if (annotation instanceof Nullable) {
+                    nullables[i] = (Nullable) annotation;
                 }
             }
         }
         injectionPoint.setParameterTypes(parameterTypes);
         injectionPoint.setQualifiers(qualifiers);
+        injectionPoint.setNullables(nullables);
         return injectionPoint;
     }
 

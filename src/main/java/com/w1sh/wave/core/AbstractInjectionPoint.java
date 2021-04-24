@@ -1,5 +1,6 @@
 package com.w1sh.wave.core;
 
+import com.w1sh.wave.core.annotation.Nullable;
 import com.w1sh.wave.core.annotation.Qualifier;
 
 import java.lang.reflect.Constructor;
@@ -10,6 +11,7 @@ public abstract class AbstractInjectionPoint<T> {
     private final Constructor<T> constructor;
     private Qualifier[] qualifiers;
     private Type[] parameterTypes;
+    private Nullable[] nullables;
 
     protected AbstractInjectionPoint(Constructor<T> constructor) {
         this.constructor = constructor;
@@ -35,5 +37,13 @@ public abstract class AbstractInjectionPoint<T> {
 
     public void setParameterTypes(Type[] parameterTypes) {
         this.parameterTypes = parameterTypes;
+    }
+
+    public Nullable[] getNullables() {
+        return nullables;
+    }
+
+    public void setNullables(Nullable[] nullables) {
+        this.nullables = nullables;
     }
 }
