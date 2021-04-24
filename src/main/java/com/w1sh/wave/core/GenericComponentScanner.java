@@ -1,6 +1,7 @@
 package com.w1sh.wave.core;
 
 import com.w1sh.wave.core.annotation.Component;
+import com.w1sh.wave.core.annotation.Configuration;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -10,7 +11,10 @@ import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GenericComponentScanner implements ComponentScanner {
 
@@ -30,6 +34,11 @@ public class GenericComponentScanner implements ComponentScanner {
     @Override
     public Set<Class<?>> scan() {
         logger.debug("Scanning in defined package \"{}\" for annotated classes", packagePrefix);
-        return reflections.getTypesAnnotatedWith(Component.class);
+        final Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
+        final Set<Class<?>> componentClasses = reflections.getTypesAnnotatedWith(Component.class);
+
+        return Stream.of(configurationClasses, componentClasses)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
     }
 }
