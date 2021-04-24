@@ -1,6 +1,7 @@
 package com.w1sh.wave.example.service.impl;
 
 import com.w1sh.wave.core.Lazy;
+import com.w1sh.wave.core.Provider;
 import com.w1sh.wave.core.annotation.Component;
 import com.w1sh.wave.core.annotation.Inject;
 import com.w1sh.wave.example.service.CalculatorService;
@@ -10,10 +11,10 @@ import com.w1sh.wave.example.service.MerchantService;
 public class LazyServiceImpl implements MerchantService {
 
     private final Lazy<CalculatorService> calculatorService;
-    private final BetterCalculatorServiceImpl betterCalculatorService;
+    private final Provider<BetterCalculatorServiceImpl> betterCalculatorService;
 
     @Inject
-    public LazyServiceImpl(Lazy<CalculatorService> calculatorService, BetterCalculatorServiceImpl betterCalculatorService) {
+    public LazyServiceImpl(Lazy<CalculatorService> calculatorService, Provider<BetterCalculatorServiceImpl> betterCalculatorService) {
         this.calculatorService = calculatorService;
         this.betterCalculatorService = betterCalculatorService;
     }
@@ -22,7 +23,7 @@ public class LazyServiceImpl implements MerchantService {
         return calculatorService;
     }
 
-    public BetterCalculatorServiceImpl getBetterCalculatorService() {
+    public Provider<BetterCalculatorServiceImpl> getBetterCalculatorService() {
         return betterCalculatorService;
     }
 }

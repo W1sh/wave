@@ -211,10 +211,9 @@ public class GenericComponentRegistry implements ComponentRegistry {
 
             if (paramType instanceof ParameterizedType) {
                 params[i] = handleParameterizedType((ParameterizedType) paramType, qualifier);
-                break;
+            } else {
+                params[i] = getComponent((Class<?>) paramType, qualifier, nullable);
             }
-
-            params[i] = getComponent((Class<?>) paramType, qualifier, nullable);
         }
         return definition.getInjectionPoint().create(params);
     }
@@ -225,6 +224,14 @@ public class GenericComponentRegistry implements ComponentRegistry {
                 return new LazyBinding<>((Class<?>) type.getActualTypeArguments()[0], qualifier.name(), this);
             } else {
                 return new LazyBinding<>((Class<?>) type.getActualTypeArguments()[0], this);
+            }
+        }
+
+        if (type.getRawType().equals(Provider.class)) {
+            if (qualifier != null) {
+                return new ProviderBinding<>((Class<?>) type.getActualTypeArguments()[0], qualifier.name(), this);
+            } else {
+                return new ProviderBinding<>((Class<?>) type.getActualTypeArguments()[0], this);
             }
         }
 
