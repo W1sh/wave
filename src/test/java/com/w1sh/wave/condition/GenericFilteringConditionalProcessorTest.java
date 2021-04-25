@@ -1,5 +1,7 @@
 package com.w1sh.wave.condition;
 
+import com.w1sh.wave.core.annotation.Conditional;
+import com.w1sh.wave.core.exception.UnresolvableConditionalException;
 import com.w1sh.wave.example.service.impl.BetterCalculatorServiceImpl;
 import com.w1sh.wave.example.service.impl.CalculatorServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -8,8 +10,7 @@ import org.reflections.Reflections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class GenericFilteringConditionalProcessorTest {
 
@@ -26,5 +27,10 @@ class GenericFilteringConditionalProcessorTest {
 
         assertNotNull(filteredClasses);
         assertFalse(filteredClasses.contains(BetterCalculatorServiceImpl.class));
+    }
+
+    @Test
+    void should_throwException_whenProcessorDoesNotExistForGivenAnnotation(){
+        assertThrows(UnresolvableConditionalException.class, () -> conditionProcessor.getProcessor(Conditional.class));
     }
 }

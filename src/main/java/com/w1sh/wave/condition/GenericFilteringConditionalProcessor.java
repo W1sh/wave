@@ -2,7 +2,10 @@ package com.w1sh.wave.condition;
 
 import com.w1sh.wave.core.annotation.Conditional;
 import com.w1sh.wave.core.exception.ComponentCreationException;
+import com.w1sh.wave.core.exception.UnresolvableConditionalException;
 import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -10,6 +13,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class GenericFilteringConditionalProcessor implements FilteringConditionalProcessor {
+
+    private static final Logger logger = LoggerFactory.getLogger(GenericFilteringConditionalProcessor.class);
 
     private final Map<Class<? extends Annotation>, ConditionalProcessor> conditionalProcessorMap = new HashMap<>();
     private final Reflections reflections;
@@ -42,7 +47,9 @@ public class GenericFilteringConditionalProcessor implements FilteringConditiona
     public ConditionalProcessor getProcessor(Class<?> conditionalAnnotation) {
         final var processor = conditionalProcessorMap.getOrDefault(conditionalAnnotation, null);
         if (processor == null) {
-            // log and throw
+            logger.error("Unable to find a conditional processor for the annotation class {}", conditionalAnnotation);
+            throw new UnresolvableConditionalException("Unable to find a conditional processor for the annotation class "
+                    + conditionalAnnotation);
         }
         return processor;
     }
