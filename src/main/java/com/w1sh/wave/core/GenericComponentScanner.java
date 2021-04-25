@@ -1,5 +1,7 @@
 package com.w1sh.wave.core;
 
+import com.w1sh.wave.condition.FilteringConditionProcessor;
+import com.w1sh.wave.condition.GenericFilteringConditionProcessor;
 import com.w1sh.wave.core.annotation.Component;
 import com.w1sh.wave.core.annotation.Configuration;
 import org.reflections.Reflections;
@@ -20,15 +22,21 @@ public class GenericComponentScanner implements ComponentScanner {
 
     private static final Logger logger = LoggerFactory.getLogger(GenericComponentScanner.class);
 
+    private final FilteringConditionProcessor conditionProcessor;
     private final Reflections reflections;
     private final String packagePrefix;
 
-    public GenericComponentScanner(String packagePrefix) {
+    public GenericComponentScanner(FilteringConditionProcessor conditionProcessor, String packagePrefix) {
         this.reflections = new Reflections(new ConfigurationBuilder()
                 .setUrls(ClasspathHelper.forPackage(packagePrefix))
                 .setScanners(new TypeAnnotationsScanner(), new SubTypesScanner(), new MethodAnnotationsScanner())
                 .useParallelExecutor());
         this.packagePrefix = packagePrefix;
+        this.conditionProcessor = conditionProcessor != null ? conditionProcessor : new GenericFilteringConditionProcessor();
+    }
+
+    public GenericComponentScanner(String packagePrefix) {
+        this(null, packagePrefix);
     }
 
     @Override
@@ -37,8 +45,10 @@ public class GenericComponentScanner implements ComponentScanner {
         final Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
         final Set<Class<?>> componentClasses = reflections.getTypesAnnotatedWith(Component.class);
 
-        return Stream.of(configurationClasses, componentClasses)
+        final Set<Class<?>> candidates = Stream.of(configurationClasses, componentClasses)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
+
+        return conditionProcessor.processConditionals(candidates);
     }
 }
