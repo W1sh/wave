@@ -1,7 +1,7 @@
 package com.w1sh.wave.core;
 
-import com.w1sh.wave.condition.FilteringConditionProcessor;
-import com.w1sh.wave.condition.GenericFilteringConditionProcessor;
+import com.w1sh.wave.condition.FilteringConditionalProcessor;
+import com.w1sh.wave.condition.GenericFilteringConditionalProcessor;
 import com.w1sh.wave.core.annotation.Component;
 import com.w1sh.wave.core.annotation.Configuration;
 import org.reflections.Reflections;
@@ -22,17 +22,17 @@ public class GenericComponentScanner implements ComponentScanner {
 
     private static final Logger logger = LoggerFactory.getLogger(GenericComponentScanner.class);
 
-    private final FilteringConditionProcessor conditionProcessor;
+    private final FilteringConditionalProcessor conditionProcessor;
     private final Reflections reflections;
     private final String packagePrefix;
 
-    public GenericComponentScanner(FilteringConditionProcessor conditionProcessor, String packagePrefix) {
+    public GenericComponentScanner(FilteringConditionalProcessor conditionProcessor, String packagePrefix) {
         this.reflections = new Reflections(new ConfigurationBuilder()
                 .setUrls(ClasspathHelper.forPackage(packagePrefix))
                 .setScanners(new TypeAnnotationsScanner(), new SubTypesScanner(), new MethodAnnotationsScanner())
                 .useParallelExecutor());
         this.packagePrefix = packagePrefix;
-        this.conditionProcessor = conditionProcessor != null ? conditionProcessor : new GenericFilteringConditionProcessor();
+        this.conditionProcessor = conditionProcessor != null ? conditionProcessor : new GenericFilteringConditionalProcessor(reflections);
     }
 
     public GenericComponentScanner(String packagePrefix) {
