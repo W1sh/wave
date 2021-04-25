@@ -6,10 +6,8 @@ import org.reflections.Reflections;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class GenericFilteringConditionalProcessor implements FilteringConditionalProcessor {
 
@@ -25,11 +23,14 @@ public class GenericFilteringConditionalProcessor implements FilteringConditiona
     public Set<Class<?>> processConditionals(Set<Class<?>> classes) {
         final Set<Class<?>> classesToBeRemoved = new HashSet<>();
         for (Class<?> clazz : classes) {
-            final Annotation conditionalAnnotation = getConditionalAnnotation(clazz);
-            if (conditionalAnnotation != null) {
-                final ConditionalProcessor processor = getProcessor(conditionalAnnotation.annotationType());
-                if (!processor.matches(classes, clazz)){
-                    classesToBeRemoved.add(clazz);
+            final List<Annotation> conditionalAnnotation = getConditionalAnnotations(clazz);
+            if (!conditionalAnnotation.isEmpty()) {
+                for (Annotation annotation : conditionalAnnotation) {
+                    final ConditionalProcessor processor = getProcessor(annotation.annotationType());
+                    if (!processor.matches(classes, clazz)){
+                        classesToBeRemoved.add(clazz);
+                        break;
+                    }
                 }
             }
         }
@@ -57,13 +58,10 @@ public class GenericFilteringConditionalProcessor implements FilteringConditiona
         }
     }
 
-    private Annotation getConditionalAnnotation(Class<?> clazz) {
-        for (Annotation annotation : clazz.getAnnotations()) {
-            if (annotation.annotationType().isAnnotationPresent(Conditional.class)) {
-                return annotation;
-            }
-        }
-        return null;
+    private List<Annotation> getConditionalAnnotations(Class<?> clazz) {
+        return Arrays.stream(clazz.getAnnotations())
+                .filter(a -> a.annotationType().isAnnotationPresent(Conditional.class))
+                .collect(Collectors.toList());
     }
 
     private ConditionalProcessor createInstance(Class<? extends ConditionalProcessor> clazz) {
