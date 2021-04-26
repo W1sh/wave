@@ -4,6 +4,7 @@ import com.w1sh.wave.core.annotation.Nullable;
 import com.w1sh.wave.core.annotation.Qualifier;
 import com.w1sh.wave.core.exception.ComponentCreationException;
 import com.w1sh.wave.core.exception.UnsatisfiedComponentException;
+import com.w1sh.wave.util.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,7 +201,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
 
     private Object createInstance(AbstractComponentDefinition<?> definition) {
         if (definition.getInjectionPoint().getParameterTypes() == null) {
-            return definition.getInjectionPoint().create(new Object[]{});
+            return ReflectionUtils.newInstance(definition.getInjectionPoint(), new Object[]{});
         }
 
         final Object[] params = new Object[definition.getInjectionPoint().getParameterTypes().length];
@@ -215,7 +216,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
                 params[i] = getComponent((Class<?>) paramType, qualifier, nullable);
             }
         }
-        return definition.getInjectionPoint().create(params);
+        return ReflectionUtils.newInstance(definition.getInjectionPoint(), params);
     }
 
     private Object handleParameterizedType(ParameterizedType type, Qualifier qualifier) {

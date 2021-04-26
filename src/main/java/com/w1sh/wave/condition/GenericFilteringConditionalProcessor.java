@@ -1,14 +1,13 @@
 package com.w1sh.wave.condition;
 
 import com.w1sh.wave.core.annotation.Conditional;
-import com.w1sh.wave.core.exception.ComponentCreationException;
 import com.w1sh.wave.core.exception.UnresolvableConditionalException;
+import com.w1sh.wave.util.ReflectionUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -59,7 +58,7 @@ public class GenericFilteringConditionalProcessor implements FilteringConditiona
         for (Class<? extends ConditionalProcessor> clazz : subTypesOf) {
             if (clazz.isAnnotationPresent(Processor.class)) {
                 final Class<? extends Annotation> classOfProcessedAnnotation = clazz.getAnnotation(Processor.class).value();
-                final ConditionalProcessor instance = createInstance(clazz);
+                final ConditionalProcessor instance = ReflectionUtils.newInstance(clazz);
                 conditionalProcessorMap.put(classOfProcessedAnnotation, instance);
             }
         }
@@ -69,13 +68,5 @@ public class GenericFilteringConditionalProcessor implements FilteringConditiona
         return Arrays.stream(clazz.getAnnotations())
                 .filter(a -> a.annotationType().isAnnotationPresent(Conditional.class))
                 .collect(Collectors.toList());
-    }
-
-    private ConditionalProcessor createInstance(Class<? extends ConditionalProcessor> clazz) {
-        try {
-            return clazz.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new ComponentCreationException("Unable to create an instance of the class", e);
-        }
     }
 }
