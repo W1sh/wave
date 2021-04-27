@@ -16,11 +16,11 @@ public class ConditionalOnPropertyProcessor implements ConditionalProcessor {
 
     private boolean matchesSystemProperty(ConditionalOnProperty conditional) {
         final String property = System.getProperty(conditional.key());
-        return property.equalsIgnoreCase(conditional.value());
+        return property != null && property.equalsIgnoreCase(conditional.value());
     }
 
     private boolean matchesEnvironmentProperty(ConditionalOnProperty conditional) {
         final String property = System.getenv(conditional.key());
-        return property.equalsIgnoreCase(conditional.value());
+        return property != null && property.equalsIgnoreCase(conditional.value());
     }
 }
