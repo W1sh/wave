@@ -3,7 +3,7 @@ package com.w1sh.wave.core;
 public abstract class Definition<T> {
 
     private final Class<T> clazz;
-    private AbstractInjectionPoint<T> injectionPoint;
+    private InjectionPoint injectionPoint;
     private String name;
     private boolean primary;
 
@@ -15,11 +15,11 @@ public abstract class Definition<T> {
         return clazz;
     }
 
-    public AbstractInjectionPoint<T> getInjectionPoint() {
+    public InjectionPoint getInjectionPoint() {
         return injectionPoint;
     }
 
-    public void setInjectionPoint(AbstractInjectionPoint<T> injectionPoint) {
+    public void setInjectionPoint(InjectionPoint injectionPoint) {
         this.injectionPoint = injectionPoint;
     }
 

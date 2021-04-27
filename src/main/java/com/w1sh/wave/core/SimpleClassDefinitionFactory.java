@@ -43,8 +43,8 @@ public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
         return (Constructor<T>) aClass.getConstructors()[0];
     }
 
-    private <T> AbstractInjectionPoint<T> toInjectionPoint(Constructor<T> constructor) {
-        final AbstractInjectionPoint<T> injectionPoint = new InjectionPoint<>(constructor);
+    private <T> InjectionPoint toInjectionPoint(Constructor<T> constructor) {
+        final InjectionPoint injectionPoint = new ConstructorInjectionPoint<>(constructor);
         if (constructor.getParameterCount() == 0) {
             return injectionPoint;
         }

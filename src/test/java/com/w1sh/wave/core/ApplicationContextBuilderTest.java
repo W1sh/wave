@@ -12,16 +12,22 @@ class ApplicationContextBuilderTest {
         final GenericComponentScanner scanner = new GenericComponentScanner("");
         final GenericComponentRegistry registry = new GenericComponentRegistry();
         final ApplicationEnvironment environment = new ApplicationEnvironment();
+        final ClassDefinitionFactory classDefinitionFactory = new SimpleClassDefinitionFactory();
+        final MethodDefinitionFactory methodDefinitionFactory = new SimpleMethodDefinitionFactory();
 
         ApplicationContext context = ApplicationContext.builder()
                 .setRegistry(registry)
                 .setScanner(scanner)
                 .setEnvironment(environment)
+                .setClassDefinitionFactory(classDefinitionFactory)
+                .setMethodDefinitionFactory(methodDefinitionFactory)
                 .build();
 
         assertNotNull(context);
         assertEquals(scanner, context.getScanner());
         assertEquals(registry, context.getRegistry());
         assertEquals(environment, context.getEnvironment());
+        assertEquals(classDefinitionFactory, context.getClassDefinitionFactory());
+        assertEquals(methodDefinitionFactory, context.getMethodDefinitionFactory());
     }
 }

@@ -94,4 +94,12 @@ public class ApplicationContext extends AbstractApplicationContext {
     public void clear() {
         this.getRegistry().clear();
     }
+
+    public ClassDefinitionFactory getClassDefinitionFactory() {
+        return classDefinitionFactory;
+    }
+
+    public MethodDefinitionFactory getMethodDefinitionFactory() {
+        return methodDefinitionFactory;
+    }
 }
