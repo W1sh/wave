@@ -13,38 +13,36 @@ public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
     private static final Logger logger = LoggerFactory.getLogger(SimpleClassDefinitionFactory.class);
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> Definition<T> create(Class<?> clazz) {
-        return (Definition<T>) toComponentDefinition(clazz);
+    public Definition create(Class<?> clazz) {
+        return toComponentDefinition(clazz);
     }
 
-    private <T> Definition<T> toComponentDefinition(Class<T> aClass) {
+    private Definition toComponentDefinition(Class<?> aClass) {
         logger.debug("Creating component definition from class {}.", aClass);
-        final Definition<T> definition = new ComponentDefinition<>(aClass);
+        final Definition definition = new ComponentDefinition(aClass);
         final Component componentAnnotation = aClass.getAnnotation(Component.class);
 
         if (aClass.isAnnotationPresent(Primary.class)) {
             definition.setPrimary(true);
         }
 
-        final Constructor<T> constructor = findAnnotatedConstructor(aClass);
+        final Constructor<?> constructor = findAnnotatedConstructor(aClass);
         definition.setInjectionPoint(toInjectionPoint(constructor));
         definition.setName(createComponentName(aClass, componentAnnotation.name()));
         return definition;
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> Constructor<T> findAnnotatedConstructor(Class<T> aClass) {
+    private Constructor<?> findAnnotatedConstructor(Class<?> aClass) {
         for (Constructor<?> constructor : aClass.getConstructors()) {
             if (constructor.isAnnotationPresent(Inject.class)) {
-                return (Constructor<T>) constructor;
+                return constructor;
             }
         }
-        return (Constructor<T>) aClass.getConstructors()[0];
+        return aClass.getConstructors()[0];
     }
 
-    private <T> InjectionPoint toInjectionPoint(Constructor<T> constructor) {
-        final InjectionPoint injectionPoint = new ConstructorInjectionPoint<>(constructor);
+    private InjectionPoint toInjectionPoint(Constructor<?> constructor) {
+        final InjectionPoint injectionPoint = new ConstructorInjectionPoint(constructor);
         if (constructor.getParameterCount() == 0) {
             return injectionPoint;
         }

@@ -1,8 +1,8 @@
 package com.w1sh.wave.core;
 
-public class ComponentDefinition<T> extends Definition<T> {
+public class ComponentDefinition extends Definition {
 
-    public ComponentDefinition(Class<T> clazz) {
+    public ComponentDefinition(Class<?> clazz) {
         super(clazz);
     }
 }

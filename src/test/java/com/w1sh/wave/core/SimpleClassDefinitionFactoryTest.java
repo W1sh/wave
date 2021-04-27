@@ -14,7 +14,7 @@ class SimpleClassDefinitionFactoryTest {
 
     @Test
     void should_ReturnComponentDefinition_WhenGivenComponentAnnotatedClass(){
-        final Definition<CalculatorServiceImpl> definition =
+        final Definition definition =
                 definitionFactory.create(CalculatorServiceImpl.class);
 
         assertComponentDefinitionIsProperlyDefined(definition);
@@ -23,7 +23,7 @@ class SimpleClassDefinitionFactoryTest {
 
     @Test
     void should_ReturnComponentDefinition_WhenGivenLazyComponentAnnotatedClass(){
-        final Definition<DuplicateCalculatorServiceImpl> definition =
+        final Definition definition =
                 definitionFactory.create(DuplicateCalculatorServiceImpl.class);
 
         assertComponentDefinitionIsProperlyDefined(definition);
@@ -32,7 +32,7 @@ class SimpleClassDefinitionFactoryTest {
 
     @Test
     void should_ReturnComponentDefinition_WhenGivenPrimaryComponentAnnotatedClass(){
-        final Definition<PrimaryCalculatorServiceImpl> definition =
+        final Definition definition =
                 definitionFactory.create(PrimaryCalculatorServiceImpl.class);
 
         assertComponentDefinitionIsProperlyDefined(definition);
@@ -41,7 +41,7 @@ class SimpleClassDefinitionFactoryTest {
 
     @Test
     void should_ReturnComponentDefinition_WhenGivenComponentAnnotatedClassWithDependencies(){
-        final Definition<MerchantServiceImpl> definition =
+        final Definition definition =
                 definitionFactory.create(MerchantServiceImpl.class);
 
         assertComponentDefinitionIsProperlyDefined(definition);
@@ -49,7 +49,7 @@ class SimpleClassDefinitionFactoryTest {
         assertFalse(definition.isPrimary());
     }
 
-    void assertComponentDefinitionIsProperlyDefined(Definition<?> definition) {
+    void assertComponentDefinitionIsProperlyDefined(Definition definition) {
         assertNotNull(definition);
         assertNotNull(definition.getClazz());
         assertNotNull(definition.getName());

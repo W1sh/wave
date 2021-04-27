@@ -66,20 +66,20 @@ public class ApplicationContext extends AbstractApplicationContext {
 
     @Override
     public void initialize() {
-        final Set<Definition<?>> classesDefinitions = this.getScanner().scanClasses().stream()
+        final Set<Definition> classesDefinitions = this.getScanner().scanClasses().stream()
                 .map(classDefinitionFactory::create)
                 .collect(Collectors.toSet());
-        final Set<Definition<?>> methodsDefinitions = this.getScanner().scanMethods().stream()
+        final Set<Definition> methodsDefinitions = this.getScanner().scanMethods().stream()
                 .map(methodDefinitionFactory::create)
                 .collect(Collectors.toSet());
 
-        final List<Definition<?>> definitions = Stream.of(classesDefinitions, methodsDefinitions)
+        final List<Definition> definitions = Stream.of(classesDefinitions, methodsDefinitions)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
         this.getRegistry().registerMetadata(definitions);
 
-        for (Definition<?> definition : definitions) {
+        for (Definition definition : definitions) {
             this.getRegistry().register(definition.getClazz());
         }
     }

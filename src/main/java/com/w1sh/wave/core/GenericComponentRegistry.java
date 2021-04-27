@@ -22,7 +22,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
     private static final Logger logger = LoggerFactory.getLogger(GenericComponentRegistry.class);
 
     private final Map<Class<?>, Object> scope;
-    private final Map<Class<?>, Definition<?>> definitions;
+    private final Map<Class<?>, Definition> definitions;
     private final Map<String, Object> namedComponents;
 
     private AbstractApplicationEnvironment environment;
@@ -34,7 +34,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
     }
 
     @Override
-    public void registerMetadata(List<Definition<?>> definitionList) {
+    public void registerMetadata(List<Definition> definitionList) {
         definitionList.forEach(definition -> definitions.put(definition.getClazz(), definition));
     }
 
@@ -46,16 +46,16 @@ public class GenericComponentRegistry implements ComponentRegistry {
         }
 
         if (Modifier.isAbstract(clazz.getModifiers())) {
-            final List<? extends Definition<?>> definitionsOfType = getDefinitionsOfType(clazz);
+            final List<? extends Definition> definitionsOfType = getDefinitionsOfType(clazz);
             definitionsOfType.forEach(this::register);
             return;
         }
 
-        final Definition<?> definition = definitions.get(clazz);
+        final Definition definition = definitions.get(clazz);
         for (Type parameterType : definition.getInjectionPoint().getParameterTypes()) {
             if (parameterType instanceof Class) {
                 if (Modifier.isAbstract(((Class<?>) parameterType).getModifiers())) {
-                    final List<? extends Definition<?>> definitionsOfType = getDefinitionsOfType(((Class<?>) parameterType));
+                    final List<? extends Definition> definitionsOfType = getDefinitionsOfType(((Class<?>) parameterType));
                     definitionsOfType.forEach(this::register);
                 } else {
                     register((Class<?>) parameterType);
@@ -65,7 +65,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
         register(definition);
     }
 
-    private void register(Definition<?> definition) {
+    private void register(Definition definition) {
         final Object instance = createInstance(definition);
         scope.put(definition.getClazz(), instance);
         if (!definition.getName().isBlank()) {
@@ -182,18 +182,17 @@ public class GenericComponentRegistry implements ComponentRegistry {
         return clazz.cast(primaryCandidates.get(0));
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> List<Definition<T>> getDefinitionsOfType(Class<T> clazz) {
-        final List<Definition<T>> candidates = new ArrayList<>();
-        for (Map.Entry<Class<?>, Definition<?>> scopeClazz : definitions.entrySet()) {
+    private List<Definition> getDefinitionsOfType(Class<?> clazz) {
+        final List<Definition> candidates = new ArrayList<>();
+        for (Map.Entry<Class<?>, Definition> scopeClazz : definitions.entrySet()) {
             if (clazz.isAssignableFrom(scopeClazz.getKey())){
-                candidates.add((Definition<T>) scopeClazz.getValue());
+                candidates.add(scopeClazz.getValue());
             }
         }
         return candidates;
     }
 
-    private Object createInstance(Definition<?> definition) {
+    private Object createInstance(Definition definition) {
         if (definition.getInjectionPoint().getParameterTypes() == null) {
             return ReflectionUtils.newInstance(definition.getInjectionPoint(), new Object[]{});
         }

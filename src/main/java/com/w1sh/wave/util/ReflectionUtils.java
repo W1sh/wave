@@ -21,28 +21,27 @@ public class ReflectionUtils {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T newInstance(InjectionPoint injectionPoint, Object[] params) {
         if (injectionPoint instanceof MethodInjectionPoint) {
-            return newInstance(((MethodInjectionPoint) injectionPoint).getMethod(),
+            return (T) newInstance(((MethodInjectionPoint) injectionPoint).getMethod(),
                     ((MethodInjectionPoint) injectionPoint).getInstanceConfigurationClass(), params);
         } else {
-            return newInstance(((ConstructorInjectionPoint) injectionPoint).getConstructor(), params);
+            return (T) newInstance(((ConstructorInjectionPoint) injectionPoint).getConstructor(), params);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static  <T> T newInstance(Method method, Object instance, Object[] params) {
+    private static Object newInstance(Method method, Object instance, Object[] params) {
         try {
-            return (T) method.invoke(instance, params);
+            return method.invoke(instance, params);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new ComponentCreationException("Failed to invoke method", e);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> T newInstance(Constructor<?> constructor, Object[] params) {
+    private static <T> T newInstance(Constructor<T> constructor, Object[] params) {
         try {
-            return (T) constructor.newInstance(params);
+            return constructor.newInstance(params);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new ComponentCreationException("Unable to create an instance of the class", e);
         }
