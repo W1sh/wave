@@ -8,13 +8,13 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class GenericComponentDefinitionFactoryTest {
+class SimpleClassDefinitionFactoryTest {
 
-    private final ComponentDefinitionFactory definitionFactory = new GenericComponentDefinitionFactory();
+    private final ClassDefinitionFactory definitionFactory = new SimpleClassDefinitionFactory();
 
     @Test
     void should_ReturnComponentDefinition_WhenGivenComponentAnnotatedClass(){
-        final AbstractComponentDefinition<CalculatorServiceImpl> definition =
+        final Definition<CalculatorServiceImpl> definition =
                 definitionFactory.create(CalculatorServiceImpl.class);
 
         assertComponentDefinitionIsProperlyDefined(definition);
@@ -23,7 +23,7 @@ class GenericComponentDefinitionFactoryTest {
 
     @Test
     void should_ReturnComponentDefinition_WhenGivenLazyComponentAnnotatedClass(){
-        final AbstractComponentDefinition<DuplicateCalculatorServiceImpl> definition =
+        final Definition<DuplicateCalculatorServiceImpl> definition =
                 definitionFactory.create(DuplicateCalculatorServiceImpl.class);
 
         assertComponentDefinitionIsProperlyDefined(definition);
@@ -32,7 +32,7 @@ class GenericComponentDefinitionFactoryTest {
 
     @Test
     void should_ReturnComponentDefinition_WhenGivenPrimaryComponentAnnotatedClass(){
-        final AbstractComponentDefinition<PrimaryCalculatorServiceImpl> definition =
+        final Definition<PrimaryCalculatorServiceImpl> definition =
                 definitionFactory.create(PrimaryCalculatorServiceImpl.class);
 
         assertComponentDefinitionIsProperlyDefined(definition);
@@ -41,7 +41,7 @@ class GenericComponentDefinitionFactoryTest {
 
     @Test
     void should_ReturnComponentDefinition_WhenGivenComponentAnnotatedClassWithDependencies(){
-        final AbstractComponentDefinition<MerchantServiceImpl> definition =
+        final Definition<MerchantServiceImpl> definition =
                 definitionFactory.create(MerchantServiceImpl.class);
 
         assertComponentDefinitionIsProperlyDefined(definition);
@@ -49,17 +49,7 @@ class GenericComponentDefinitionFactoryTest {
         assertFalse(definition.isPrimary());
     }
 
-    @Test
-    void should_ReturnComponentDefinition_WhenGivenComponentAnnotatedClassAndNamed(){
-        final AbstractComponentDefinition<CalculatorServiceImpl> definition =
-                definitionFactory.create(CalculatorServiceImpl.class, "name");
-
-        assertComponentDefinitionIsProperlyDefined(definition);
-        assertEquals(definition.getClazz().getPackageName() + ".name", definition.getName());
-        assertFalse(definition.isPrimary());
-    }
-
-    void assertComponentDefinitionIsProperlyDefined(AbstractComponentDefinition<?> definition) {
+    void assertComponentDefinitionIsProperlyDefined(Definition<?> definition) {
         assertNotNull(definition);
         assertNotNull(definition.getClazz());
         assertNotNull(definition.getName());

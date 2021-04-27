@@ -2,9 +2,9 @@ package com.w1sh.wave.core;
 
 import java.util.List;
 
-public interface ComponentRegistry extends Configurable{
+public interface ComponentRegistry extends Configurable {
 
-    void registerMetadata(List<Class<?>> classes);
+    void registerMetadata(List<Definition<?>> definitions);
 
     void register(Class<?> clazz);
 

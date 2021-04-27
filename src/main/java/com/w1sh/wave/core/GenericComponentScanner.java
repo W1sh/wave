@@ -4,6 +4,7 @@ import com.w1sh.wave.condition.FilteringConditionalProcessor;
 import com.w1sh.wave.condition.GenericFilteringConditionalProcessor;
 import com.w1sh.wave.core.annotation.Component;
 import com.w1sh.wave.core.annotation.Configuration;
+import com.w1sh.wave.core.annotation.Provides;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -13,10 +14,13 @@ import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import static org.reflections.ReflectionUtils.getAllMethods;
+import static org.reflections.ReflectionUtils.withAnnotation;
 
 public class GenericComponentScanner implements ComponentScanner {
 
@@ -40,15 +44,19 @@ public class GenericComponentScanner implements ComponentScanner {
     }
 
     @Override
-    public Set<Class<?>> scan() {
+    public Set<Class<?>> scanClasses() {
         logger.debug("Scanning in defined package \"{}\" for annotated classes", packagePrefix);
-        final Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
         final Set<Class<?>> componentClasses = reflections.getTypesAnnotatedWith(Component.class);
+        return conditionProcessor.processConditionals(componentClasses);
+    }
 
-        final Set<Class<?>> candidates = Stream.of(configurationClasses, componentClasses)
+    @Override
+    public Set<Method> scanMethods() {
+        logger.debug("Scanning in defined package \"{}\" for annotated methods", packagePrefix);
+        final Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
+        return configurationClasses.stream()
+                .map(clazz -> getAllMethods(clazz, withAnnotation(Provides.class)))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
-
-        return conditionProcessor.processConditionals(candidates);
     }
 }

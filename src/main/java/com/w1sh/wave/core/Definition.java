@@ -1,13 +1,13 @@
 package com.w1sh.wave.core;
 
-public abstract class AbstractComponentDefinition<T> {
+public abstract class Definition<T> {
 
     private final Class<T> clazz;
     private AbstractInjectionPoint<T> injectionPoint;
     private String name;
     private boolean primary;
 
-    protected AbstractComponentDefinition(Class<T> clazz) {
+    protected Definition(Class<T> clazz) {
         this.clazz = clazz;
     }
 

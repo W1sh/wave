@@ -21,27 +21,21 @@ public class GenericComponentRegistry implements ComponentRegistry {
 
     private static final Logger logger = LoggerFactory.getLogger(GenericComponentRegistry.class);
 
-    private final ComponentDefinitionFactory factory;
     private final Map<Class<?>, Object> scope;
-    private final Map<Class<?>, AbstractComponentDefinition<?>> definitions;
+    private final Map<Class<?>, Definition<?>> definitions;
     private final Map<String, Object> namedComponents;
 
     private AbstractApplicationEnvironment environment;
 
     public GenericComponentRegistry() {
-        this(null);
-    }
-
-    public GenericComponentRegistry(ComponentDefinitionFactory factory) {
         this.scope = new HashMap<>(255);
         this.definitions = new HashMap<>(255);
         this.namedComponents = new HashMap<>(255);
-        this.factory = factory != null ? factory : new GenericComponentDefinitionFactory();
     }
 
     @Override
-    public void registerMetadata(List<Class<?>> classes) {
-        classes.forEach(c -> definitions.put(c, factory.create(c)));
+    public void registerMetadata(List<Definition<?>> definitionList) {
+        definitionList.forEach(definition -> definitions.put(definition.getClazz(), definition));
     }
 
     @Override
@@ -52,16 +46,16 @@ public class GenericComponentRegistry implements ComponentRegistry {
         }
 
         if (Modifier.isAbstract(clazz.getModifiers())) {
-            final List<? extends AbstractComponentDefinition<?>> definitionsOfType = getDefinitionsOfType(clazz);
+            final List<? extends Definition<?>> definitionsOfType = getDefinitionsOfType(clazz);
             definitionsOfType.forEach(this::register);
             return;
         }
 
-        final AbstractComponentDefinition<?> definition = definitions.get(clazz);
+        final Definition<?> definition = definitions.get(clazz);
         for (Type parameterType : definition.getInjectionPoint().getParameterTypes()) {
             if (parameterType instanceof Class) {
                 if (Modifier.isAbstract(((Class<?>) parameterType).getModifiers())) {
-                    final List<? extends AbstractComponentDefinition<?>> definitionsOfType = getDefinitionsOfType(((Class<?>) parameterType));
+                    final List<? extends Definition<?>> definitionsOfType = getDefinitionsOfType(((Class<?>) parameterType));
                     definitionsOfType.forEach(this::register);
                 } else {
                     register((Class<?>) parameterType);
@@ -71,7 +65,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
         register(definition);
     }
 
-    private void register(AbstractComponentDefinition<?> definition) {
+    private void register(Definition<?> definition) {
         final Object instance = createInstance(definition);
         scope.put(definition.getClazz(), instance);
         if (!definition.getName().isBlank()) {
@@ -189,17 +183,17 @@ public class GenericComponentRegistry implements ComponentRegistry {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> List<AbstractComponentDefinition<T>> getDefinitionsOfType(Class<T> clazz) {
-        final List<AbstractComponentDefinition<T>> candidates = new ArrayList<>();
-        for (Map.Entry<Class<?>, AbstractComponentDefinition<?>> scopeClazz : definitions.entrySet()) {
+    private <T> List<Definition<T>> getDefinitionsOfType(Class<T> clazz) {
+        final List<Definition<T>> candidates = new ArrayList<>();
+        for (Map.Entry<Class<?>, Definition<?>> scopeClazz : definitions.entrySet()) {
             if (clazz.isAssignableFrom(scopeClazz.getKey())){
-                candidates.add((AbstractComponentDefinition<T>) scopeClazz.getValue());
+                candidates.add((Definition<T>) scopeClazz.getValue());
             }
         }
         return candidates;
     }
 
-    private Object createInstance(AbstractComponentDefinition<?> definition) {
+    private Object createInstance(Definition<?> definition) {
         if (definition.getInjectionPoint().getParameterTypes() == null) {
             return ReflectionUtils.newInstance(definition.getInjectionPoint(), new Object[]{});
         }

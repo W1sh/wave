@@ -1,11 +1,11 @@
 package com.w1sh.wave.core;
 
-import com.w1sh.wave.example.service.impl.TestConfiguration;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class GenericComponentScannerTest {
 
@@ -13,18 +13,10 @@ class GenericComponentScannerTest {
 
     @Test
     void should_returnSetOfAnnotatedClasses_WhenSearchingInGivenPackage(){
-        final Set<Class<?>> classes = scanner.scan();
+        final Set<Class<?>> classes = scanner.scanClasses();
 
         assertNotNull(classes);
         assertFalse(classes.isEmpty());
     }
 
-    @Test
-    void should_returnConfigurationClasses_WhenSearchingInGivenPackage(){
-        final Set<Class<?>> classes = scanner.scan();
-
-        assertNotNull(classes);
-        assertFalse(classes.isEmpty());
-        assertTrue(classes.contains(TestConfiguration.class));
-    }
 }

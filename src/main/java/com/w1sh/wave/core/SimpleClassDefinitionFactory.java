@@ -8,23 +8,19 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 
-public class GenericComponentDefinitionFactory implements ComponentDefinitionFactory {
+public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
 
-    private static final Logger logger = LoggerFactory.getLogger(GenericComponentDefinitionFactory.class);
-
-    @Override
-    public <T> AbstractComponentDefinition<T> create(Class<T> clazz) {
-        return toComponentDefinition(clazz, null);
-    }
+    private static final Logger logger = LoggerFactory.getLogger(SimpleClassDefinitionFactory.class);
 
     @Override
-    public <T>AbstractComponentDefinition<T> create(Class<T> clazz, String name) {
-        return toComponentDefinition(clazz, name);
+    @SuppressWarnings("unchecked")
+    public <T> Definition<T> create(Class<?> clazz) {
+        return (Definition<T>) toComponentDefinition(clazz);
     }
 
-    private <T> AbstractComponentDefinition<T> toComponentDefinition(Class<T> aClass, String name) {
+    private <T> Definition<T> toComponentDefinition(Class<T> aClass) {
         logger.debug("Creating component definition from class {}.", aClass);
-        final AbstractComponentDefinition<T> definition = new ComponentDefinition<>(aClass);
+        final Definition<T> definition = new ComponentDefinition<>(aClass);
         final Component componentAnnotation = aClass.getAnnotation(Component.class);
 
         if (aClass.isAnnotationPresent(Primary.class)) {
@@ -33,8 +29,7 @@ public class GenericComponentDefinitionFactory implements ComponentDefinitionFac
 
         final Constructor<T> constructor = findAnnotatedConstructor(aClass);
         definition.setInjectionPoint(toInjectionPoint(constructor));
-        final String componentName = name != null ? name : componentAnnotation.name();
-        definition.setName(createComponentName(aClass, componentName));
+        definition.setName(createComponentName(aClass, componentAnnotation.name()));
         return definition;
     }
 
@@ -74,6 +69,6 @@ public class GenericComponentDefinitionFactory implements ComponentDefinitionFac
     }
 
     private String createComponentName(Class<?> aClass, String name) {
-        return !name.isBlank() ? aClass.getPackageName() + "." + name : "";
+        return (name != null && !name.isBlank()) ? aClass.getPackageName() + "." + name : "";
     }
 }

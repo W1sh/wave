@@ -1,8 +1,11 @@
 package com.w1sh.wave.core;
 
+import java.lang.reflect.Method;
 import java.util.Set;
 
 public interface ComponentScanner {
 
-    Set<Class<?>> scan();
+    Set<Class<?>> scanClasses();
+
+    Set<Method> scanMethods();
 }
