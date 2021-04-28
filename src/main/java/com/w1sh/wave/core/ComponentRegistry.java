@@ -4,9 +4,9 @@ import java.util.List;
 
 public interface ComponentRegistry extends Configurable {
 
-    void registerMetadata(List<Definition> definitions);
+    void initialize(List<Definition> definitions);
 
-    void register(Class<?> clazz);
+    <T> void register(Class<T> clazz, T instance);
 
     <T> T getComponent(Class<T> clazz);
 

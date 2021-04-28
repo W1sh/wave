@@ -34,38 +34,44 @@ public class GenericComponentRegistry implements ComponentRegistry {
     }
 
     @Override
-    public void registerMetadata(List<Definition> definitionList) {
+    public void initialize(List<Definition> definitionList){
         definitionList.forEach(definition -> definitions.put(definition.getClazz(), definition));
+
+        for (Definition definition : definitions.values()) {
+            if (definition.getInjectionPoint() instanceof MethodInjectionPoint) {
+                final MethodInjectionPoint injectionPoint = ((MethodInjectionPoint) definition.getInjectionPoint());
+                register(definitions.get(injectionPoint.getMethod().getDeclaringClass()));
+                injectionPoint.setInstanceConfigurationClass(scope.get(injectionPoint.getMethod().getDeclaringClass()));
+            }
+
+            for (Type parameterType : definition.getInjectionPoint().getParameterTypes()) {
+                if (parameterType instanceof Class) {
+                    if (Modifier.isAbstract(((Class<?>) parameterType).getModifiers())) {
+                        final List<? extends Definition> definitionsOfType = getDefinitionsOfType(((Class<?>) parameterType));
+                        definitionsOfType.forEach(this::register);
+                    } else {
+                        register(definitions.get((Class<?>) parameterType));
+                    }
+                }
+            }
+            register(definition);
+        }
     }
 
     @Override
-    public void register(Class<?> clazz) {
+    public <T> void register(Class<T> clazz, T instance) {
         if (scope.containsKey(clazz) && !environment.isOverridingEnabled()) {
             logger.info("Instance of class {} already exists in scope", clazz);
             return;
         }
-
-        if (Modifier.isAbstract(clazz.getModifiers())) {
-            final List<? extends Definition> definitionsOfType = getDefinitionsOfType(clazz);
-            definitionsOfType.forEach(this::register);
-            return;
-        }
-
-        final Definition definition = definitions.get(clazz);
-        for (Type parameterType : definition.getInjectionPoint().getParameterTypes()) {
-            if (parameterType instanceof Class) {
-                if (Modifier.isAbstract(((Class<?>) parameterType).getModifiers())) {
-                    final List<? extends Definition> definitionsOfType = getDefinitionsOfType(((Class<?>) parameterType));
-                    definitionsOfType.forEach(this::register);
-                } else {
-                    register((Class<?>) parameterType);
-                }
-            }
-        }
-        register(definition);
+        scope.put(clazz, instance);
     }
 
     private void register(Definition definition) {
+        if (scope.containsKey(definition.getClazz()) && !environment.isOverridingEnabled()) {
+            logger.info("Instance of class {} already exists in scope", definition.getClazz());
+            return;
+        }
         final Object instance = createInstance(definition);
         scope.put(definition.getClazz(), instance);
         if (!definition.getName().isBlank()) {

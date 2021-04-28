@@ -71,11 +71,7 @@ public class ApplicationContext extends AbstractApplicationContext {
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
-        this.getRegistry().registerMetadata(definitions);
-
-        for (Definition definition : definitions) {
-            this.getRegistry().register(definition.getClazz());
-        }
+        this.getRegistry().initialize(definitions);
     }
 
     @Override
