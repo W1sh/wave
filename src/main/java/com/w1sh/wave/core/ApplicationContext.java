@@ -8,21 +8,15 @@ import java.util.stream.Stream;
 
 public class ApplicationContext extends AbstractApplicationContext {
 
-    private final ClassDefinitionFactory classDefinitionFactory;
-    private final MethodDefinitionFactory methodDefinitionFactory;
-
     public ApplicationContext(ComponentRegistry registry, ComponentScanner scanner,
                               ClassDefinitionFactory classDefinitionFactory, MethodDefinitionFactory methodDefinitionFactory) {
-        super(registry, scanner);
-        this.classDefinitionFactory = classDefinitionFactory;
-        this.methodDefinitionFactory = methodDefinitionFactory;
+        super(registry, scanner, classDefinitionFactory, methodDefinitionFactory);
+
     }
 
     public ApplicationContext(ComponentRegistry registry, ComponentScanner scanner, AbstractApplicationEnvironment environment,
                               ClassDefinitionFactory classDefinitionFactory, MethodDefinitionFactory methodDefinitionFactory) {
-        super(registry, scanner, environment);
-        this.classDefinitionFactory = classDefinitionFactory;
-        this.methodDefinitionFactory = methodDefinitionFactory;
+        super(registry, scanner, environment, classDefinitionFactory, methodDefinitionFactory);
     }
 
     public static ApplicationContextBuilder builder(){
@@ -67,10 +61,10 @@ public class ApplicationContext extends AbstractApplicationContext {
     @Override
     public void initialize() {
         final Set<Definition> classesDefinitions = this.getScanner().scanClasses().stream()
-                .map(classDefinitionFactory::create)
+                .map(getClassDefinitionFactory()::create)
                 .collect(Collectors.toSet());
         final Set<Definition> methodsDefinitions = this.getScanner().scanMethods().stream()
-                .map(methodDefinitionFactory::create)
+                .map(getMethodDefinitionFactory()::create)
                 .collect(Collectors.toSet());
 
         final List<Definition> definitions = Stream.of(classesDefinitions, methodsDefinitions)
@@ -95,11 +89,4 @@ public class ApplicationContext extends AbstractApplicationContext {
         this.getRegistry().clear();
     }
 
-    public ClassDefinitionFactory getClassDefinitionFactory() {
-        return classDefinitionFactory;
-    }
-
-    public MethodDefinitionFactory getMethodDefinitionFactory() {
-        return methodDefinitionFactory;
-    }
 }

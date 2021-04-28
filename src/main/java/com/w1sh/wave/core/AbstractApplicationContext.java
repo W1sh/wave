@@ -2,19 +2,25 @@ package com.w1sh.wave.core;
 
 public abstract class AbstractApplicationContext implements Configurable {
 
+    private final ClassDefinitionFactory classDefinitionFactory;
+    private final MethodDefinitionFactory methodDefinitionFactory;
     private final ComponentRegistry registry;
     private final ComponentScanner scanner;
     private AbstractApplicationEnvironment environment;
 
-    protected AbstractApplicationContext(ComponentRegistry registry, ComponentScanner scanner) {
+    protected AbstractApplicationContext(ComponentRegistry registry, ComponentScanner scanner,
+                                         ClassDefinitionFactory classDefinitionFactory, MethodDefinitionFactory methodDefinitionFactory) {
         this.registry = registry;
         this.scanner = scanner;
         this.environment = ApplicationEnvironment.builder().build();
+        this.classDefinitionFactory = classDefinitionFactory;
+        this.methodDefinitionFactory = methodDefinitionFactory;
     }
 
     protected AbstractApplicationContext(ComponentRegistry registry, ComponentScanner scanner,
-                                         AbstractApplicationEnvironment environment) {
-        this(registry, scanner);
+                                         AbstractApplicationEnvironment environment, ClassDefinitionFactory classDefinitionFactory,
+                                         MethodDefinitionFactory methodDefinitionFactory) {
+        this(registry, scanner, classDefinitionFactory, methodDefinitionFactory);
         this.environment = environment;
     }
 
@@ -43,6 +49,14 @@ public abstract class AbstractApplicationContext implements Configurable {
     public void setEnvironment(AbstractApplicationEnvironment environment) {
         this.environment = environment;
         this.registry.setEnvironment(environment);
+    }
+
+    public ClassDefinitionFactory getClassDefinitionFactory() {
+        return classDefinitionFactory;
+    }
+
+    public MethodDefinitionFactory getMethodDefinitionFactory() {
+        return methodDefinitionFactory;
     }
 
     public ComponentRegistry getRegistry() {
