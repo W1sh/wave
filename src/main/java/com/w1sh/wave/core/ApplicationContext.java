@@ -60,6 +60,8 @@ public class ApplicationContext extends AbstractApplicationContext {
 
     @Override
     public void initialize() {
+        this.getRegistry().register(ApplicationContext.class, this);
+
         final Set<Definition> classesDefinitions = this.getScanner().scanClasses().stream()
                 .map(getClassDefinitionFactory()::create)
                 .collect(Collectors.toSet());
