@@ -1,5 +1,8 @@
 package com.w1sh.wave.core;
 
+import com.w1sh.wave.core.annotation.Configuration;
+import com.w1sh.wave.core.annotation.Provides;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -62,6 +65,8 @@ public class ApplicationContext extends AbstractApplicationContext {
     @Override
     public void initialize() {
         this.getRegistry().register(ApplicationContext.class, this);
+        this.getScanner().ignoreType(Configuration.class);
+        this.getScanner().ignoreType(Provides.class);
 
         final Set<Definition> classesDefinitions = this.getScanner().scanClasses().stream()
                 .map(getClassDefinitionFactory()::create)

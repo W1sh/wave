@@ -8,4 +8,6 @@ public interface ComponentScanner {
     Set<Class<?>> scanClasses();
 
     Set<Method> scanMethods();
+
+    void ignoreType(Class<?> clazz);
 }

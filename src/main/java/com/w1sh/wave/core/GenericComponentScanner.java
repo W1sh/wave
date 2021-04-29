@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,7 @@ public class GenericComponentScanner implements ComponentScanner {
     private final FilteringConditionalProcessor conditionProcessor;
     private final Reflections reflections;
     private final String packagePrefix;
+    private final Set<Class<?>> typesToIgnore = new HashSet<>();
 
     public GenericComponentScanner(FilteringConditionalProcessor conditionProcessor, String packagePrefix) {
         this.reflections = new Reflections(new ConfigurationBuilder()
@@ -47,6 +49,7 @@ public class GenericComponentScanner implements ComponentScanner {
     public Set<Class<?>> scanClasses() {
         logger.debug("Scanning in defined package \"{}\" for annotated classes", packagePrefix);
         final Set<Class<?>> componentClasses = reflections.getTypesAnnotatedWith(Component.class);
+        componentClasses.removeAll(typesToIgnore);
         return conditionProcessor.processConditionals(componentClasses);
     }
 
@@ -58,5 +61,10 @@ public class GenericComponentScanner implements ComponentScanner {
                 .map(clazz -> getAllMethods(clazz, withAnnotation(Provides.class)))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void ignoreType(Class<?> clazz) {
+        typesToIgnore.add(clazz);
     }
 }
