@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 
 public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
 
@@ -19,6 +20,11 @@ public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
     }
 
     private Definition toComponentDefinition(Class<?> aClass) {
+        if (Modifier.isAbstract(aClass.getModifiers())) {
+            logger.warn("Can not convert abstract class {} into a definition.", aClass);
+            return null;
+        }
+
         logger.debug("Creating component definition from class {}.", aClass);
         final var definition = new ComponentDefinition(aClass);
         final var constructor = findAnnotatedConstructor(aClass);

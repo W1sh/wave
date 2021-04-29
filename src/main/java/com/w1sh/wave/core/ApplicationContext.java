@@ -2,6 +2,7 @@ package com.w1sh.wave.core;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -64,6 +65,7 @@ public class ApplicationContext extends AbstractApplicationContext {
 
         final Set<Definition> classesDefinitions = this.getScanner().scanClasses().stream()
                 .map(getClassDefinitionFactory()::create)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         final Set<Definition> methodsDefinitions = this.getScanner().scanMethods().stream()
                 .map(getMethodDefinitionFactory()::create)
