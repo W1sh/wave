@@ -3,7 +3,7 @@ package com.w1sh.wave.core;
 import java.lang.reflect.Method;
 import java.util.Set;
 
-public interface ComponentScanner {
+public interface ComponentScanner extends Configurable {
 
     Set<Class<?>> scanClasses();
 
