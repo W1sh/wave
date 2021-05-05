@@ -17,7 +17,7 @@ public class ReflectionUtils {
 
     public static boolean isAnnotationPresent(AnnotatedElement annotatedElement, Class<? extends Annotation> annotation) {
         return Arrays.stream(annotatedElement.getAnnotations())
-                .anyMatch(a -> a.annotationType().isAnnotationPresent(annotation));
+                .anyMatch(a -> a.annotationType().equals(annotation) || a.annotationType().isAnnotationPresent(annotation));
     }
 
     public static InjectionPoint injectionPointFromExecutable(Executable executable) {

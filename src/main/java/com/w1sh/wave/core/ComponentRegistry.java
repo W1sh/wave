@@ -1,11 +1,8 @@
 package com.w1sh.wave.core;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface ComponentRegistry extends Configurable {
-
-    void initialize(Collection<Definition> definitions);
 
     <T> void register(Class<T> clazz, T instance);
 
@@ -17,7 +14,13 @@ public interface ComponentRegistry extends Configurable {
 
     <T> List<T> getComponentsOfType(Class<T> clazz);
 
-    boolean containsComponentOfType(Class<?> clazz);
+    Class<?> getType(String name);
+
+    boolean isTypeMatch(String name, Class<?> clazz);
+
+    boolean containsComponent(String name);
+
+    boolean containsComponent(Class<?> clazz);
 
     /**
      * Clears the registry of all the components and metadata

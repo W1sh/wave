@@ -4,7 +4,7 @@ import java.util.List;
 
 public class ApplicationEnvironmentBuilder {
 
-    private String packagePrefix;
+    private String packagePrefix = "";
     private List<String> activeProfiles;
     private boolean overridingEnabled;
     private boolean allowNullComponents;

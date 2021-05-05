@@ -4,14 +4,8 @@ public class ApplicationContextBuilder {
 
     private ClassDefinitionFactory classDefinitionFactory;
     private MethodDefinitionFactory methodDefinitionFactory;
-    private ComponentRegistry registry;
     private ComponentScanner scanner;
     private AbstractApplicationEnvironment environment;
-
-    public ApplicationContextBuilder setRegistry(ComponentRegistry registry) {
-        this.registry = registry;
-        return this;
-    }
 
     public ApplicationContextBuilder setScanner(ComponentScanner scanner) {
         this.scanner = scanner;
@@ -34,7 +28,7 @@ public class ApplicationContextBuilder {
     }
 
     public ApplicationContext build() {
-        return new ApplicationContext(registry, scanner, environment);
+        return new ApplicationContext(scanner, environment);
     }
 
     public ClassDefinitionFactory getClassDefinitionFactory() {
@@ -43,10 +37,6 @@ public class ApplicationContextBuilder {
 
     public MethodDefinitionFactory getMethodDefinitionFactory() {
         return methodDefinitionFactory;
-    }
-
-    public ComponentRegistry getRegistry() {
-        return registry;
     }
 
     public ComponentScanner getScanner() {
