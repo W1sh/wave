@@ -34,7 +34,7 @@ public class ApplicationContextBuilder {
     }
 
     public ApplicationContext build() {
-        return new ApplicationContext(registry, scanner, environment, classDefinitionFactory, methodDefinitionFactory);
+        return new ApplicationContext(registry, scanner, environment);
     }
 
     public ClassDefinitionFactory getClassDefinitionFactory() {

@@ -4,16 +4,27 @@ import java.util.List;
 
 public abstract class AbstractApplicationEnvironment {
 
+    private String packagePrefix;
     private List<String> activeProfiles;
     private boolean overridingEnabled;
     private boolean nullComponentsAllowed;
 
     public AbstractApplicationEnvironment() { }
 
-    public AbstractApplicationEnvironment(boolean overridingEnabled, boolean nullComponentsAllowed, List<String> activeProfiles) {
+    public AbstractApplicationEnvironment(String packagePrefix, boolean overridingEnabled, boolean nullComponentsAllowed,
+                                          List<String> activeProfiles) {
+        this.packagePrefix = packagePrefix;
         this.overridingEnabled = overridingEnabled;
         this.nullComponentsAllowed = nullComponentsAllowed;
         this.activeProfiles = activeProfiles;
+    }
+
+    public String getPackagePrefix() {
+        return packagePrefix;
+    }
+
+    public void setPackagePrefix(String packagePrefix) {
+        this.packagePrefix = packagePrefix;
     }
 
     public boolean isOverridingEnabled() {

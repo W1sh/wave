@@ -1,5 +1,7 @@
 package com.w1sh.wave.condition;
 
+import com.w1sh.wave.core.ContextMetadata;
+import com.w1sh.wave.core.Definition;
 import com.w1sh.wave.core.annotation.Conditional;
 import com.w1sh.wave.core.exception.UnresolvableConditionalException;
 import com.w1sh.wave.util.ReflectionUtils;
@@ -11,35 +13,34 @@ import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class GenericFilteringConditionalProcessor implements FilteringConditionalProcessor {
+public class SimpleFilteringConditionalProcessor implements FilteringConditionalProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(GenericFilteringConditionalProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(SimpleFilteringConditionalProcessor.class);
 
     private final Map<Class<? extends Annotation>, ConditionalProcessor> conditionalProcessorMap = new HashMap<>();
     private final Reflections reflections;
 
-    public GenericFilteringConditionalProcessor(Reflections reflections) {
+    public SimpleFilteringConditionalProcessor(Reflections reflections) {
         this.reflections = reflections;
         initializeProcessors();
     }
 
     @Override
-    public Set<Class<?>> processConditionals(Set<Class<?>> classes) {
-        final Set<Class<?>> classesToBeRemoved = new HashSet<>();
-        for (Class<?> clazz : classes) {
-            final List<Annotation> conditionalAnnotation = getConditionalAnnotations(clazz);
-            if (!conditionalAnnotation.isEmpty()) {
+    public List<Definition> processConditionals(ContextMetadata context) {
+        final List<Definition> passedConditionals = new ArrayList<>();
+        for (Definition definition : context.getConditionalDefinitions()) {
+            if (definition.isConditional()) {
+                final List<Annotation> conditionalAnnotation = getConditionalAnnotations(definition.getClazz());
                 for (Annotation annotation : conditionalAnnotation) {
                     final ConditionalProcessor processor = getProcessor(annotation.annotationType());
-                    if (!processor.matches(classes, clazz)){
-                        classesToBeRemoved.add(clazz);
+                    if (processor.matches(context, definition.getClazz())){
+                        passedConditionals.add(definition);
                         break;
                     }
                 }
             }
         }
-        classes.removeAll(classesToBeRemoved);
-        return classes;
+        return passedConditionals;
     }
 
     @Override

@@ -2,26 +2,24 @@ package com.w1sh.wave.core;
 
 public abstract class AbstractApplicationContext implements Configurable {
 
-    private final ClassDefinitionFactory classDefinitionFactory;
-    private final MethodDefinitionFactory methodDefinitionFactory;
     private final ComponentRegistry registry;
     private final ComponentScanner scanner;
     private AbstractApplicationEnvironment environment;
 
-    protected AbstractApplicationContext(ComponentRegistry registry, ComponentScanner scanner,
-                                         ClassDefinitionFactory classDefinitionFactory, MethodDefinitionFactory methodDefinitionFactory) {
+    protected AbstractApplicationContext(ComponentRegistry registry, ComponentScanner scanner) {
         this.registry = registry;
         this.scanner = scanner;
         this.environment = ApplicationEnvironment.builder().build();
-        this.classDefinitionFactory = classDefinitionFactory;
-        this.methodDefinitionFactory = methodDefinitionFactory;
+        this.registry.setEnvironment(environment);
+        this.scanner.setEnvironment(environment);
     }
 
     protected AbstractApplicationContext(ComponentRegistry registry, ComponentScanner scanner,
-                                         AbstractApplicationEnvironment environment, ClassDefinitionFactory classDefinitionFactory,
-                                         MethodDefinitionFactory methodDefinitionFactory) {
-        this(registry, scanner, classDefinitionFactory, methodDefinitionFactory);
+                                         AbstractApplicationEnvironment environment) {
+        this(registry, scanner);
         this.environment = environment;
+        this.registry.setEnvironment(environment);
+        this.scanner.setEnvironment(environment);
     }
 
     public abstract <T> T getComponent(Class<T> clazz);
@@ -49,14 +47,7 @@ public abstract class AbstractApplicationContext implements Configurable {
     public void setEnvironment(AbstractApplicationEnvironment environment) {
         this.environment = environment;
         this.registry.setEnvironment(environment);
-    }
-
-    public ClassDefinitionFactory getClassDefinitionFactory() {
-        return classDefinitionFactory;
-    }
-
-    public MethodDefinitionFactory getMethodDefinitionFactory() {
-        return methodDefinitionFactory;
+        this.scanner.setEnvironment(environment);
     }
 
     public ComponentRegistry getRegistry() {

@@ -1,21 +1,24 @@
 package com.w1sh.wave.util;
 
-import com.w1sh.wave.core.InjectionPoint;
 import com.w1sh.wave.core.ConstructorInjectionPoint;
+import com.w1sh.wave.core.InjectionPoint;
 import com.w1sh.wave.core.MethodInjectionPoint;
 import com.w1sh.wave.core.annotation.Nullable;
 import com.w1sh.wave.core.annotation.Qualifier;
 import com.w1sh.wave.core.exception.ComponentCreationException;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
+import java.util.Arrays;
 
 public class ReflectionUtils {
 
     private ReflectionUtils(){}
+
+    public static boolean isAnnotationPresent(AnnotatedElement annotatedElement, Class<? extends Annotation> annotation) {
+        return Arrays.stream(annotatedElement.getAnnotations())
+                .anyMatch(a -> a.annotationType().isAnnotationPresent(annotation));
+    }
 
     public static InjectionPoint injectionPointFromExecutable(Executable executable) {
         final InjectionPoint injectionPoint = executable instanceof Constructor ?

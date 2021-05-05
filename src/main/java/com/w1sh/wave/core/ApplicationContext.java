@@ -1,26 +1,21 @@
 package com.w1sh.wave.core;
 
+import com.w1sh.wave.condition.FilteringConditionalProcessor;
+import com.w1sh.wave.condition.SimpleFilteringConditionalProcessor;
 import com.w1sh.wave.core.annotation.Configuration;
 import com.w1sh.wave.core.annotation.Provides;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ApplicationContext extends AbstractApplicationContext {
 
-    public ApplicationContext(ComponentRegistry registry, ComponentScanner scanner,
-                              ClassDefinitionFactory classDefinitionFactory, MethodDefinitionFactory methodDefinitionFactory) {
-        super(registry, scanner, classDefinitionFactory, methodDefinitionFactory);
-
+    public ApplicationContext(ComponentRegistry registry, ComponentScanner scanner) {
+        super(registry, scanner);
     }
 
-    public ApplicationContext(ComponentRegistry registry, ComponentScanner scanner, AbstractApplicationEnvironment environment,
-                              ClassDefinitionFactory classDefinitionFactory, MethodDefinitionFactory methodDefinitionFactory) {
-        super(registry, scanner, environment, classDefinitionFactory, methodDefinitionFactory);
+    public ApplicationContext(ComponentRegistry registry, ComponentScanner scanner, AbstractApplicationEnvironment environment) {
+        super(registry, scanner, environment);
     }
 
     public static ApplicationContextBuilder builder(){
@@ -64,23 +59,28 @@ public class ApplicationContext extends AbstractApplicationContext {
 
     @Override
     public void initialize() {
-        this.getRegistry().register(ApplicationContext.class, this);
-        this.getScanner().ignoreType(Configuration.class);
-        this.getScanner().ignoreType(Provides.class);
+        prepareContext();
 
-        final Set<Definition> classesDefinitions = this.getScanner().scanClasses().stream()
-                .map(getClassDefinitionFactory()::create)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-        final Set<Definition> methodsDefinitions = this.getScanner().scanMethods().stream()
-                .map(getMethodDefinitionFactory()::create)
-                .collect(Collectors.toSet());
-
-        final List<Definition> definitions = Stream.of(classesDefinitions, methodsDefinitions)
-                .flatMap(Collection::stream)
+        final List<Definition> definitions = this.getScanner().scan();
+        // separate conditional definitions
+        final List<Definition> conditionalDefinitions = definitions.stream()
+                .filter(Definition::isConditional)
                 .collect(Collectors.toList());
 
+        definitions.removeAll(conditionalDefinitions);
+
+        // register non conditional definitions
         this.getRegistry().initialize(definitions);
+
+        // create current context and pass it onto conditional processor
+        ContextMetadata context = new ContextMetadata(this, conditionalDefinitions, getEnvironment());
+        FilteringConditionalProcessor conditionalProcessor = new SimpleFilteringConditionalProcessor(null);
+
+        // filter conditional definitions based on components already initialized
+        final List<Definition> passedConditionalDefinitions = conditionalProcessor.processConditionals(context);
+
+        // register conditional definitions
+        this.getRegistry().initialize(passedConditionalDefinitions);
     }
 
     @Override
@@ -94,4 +94,10 @@ public class ApplicationContext extends AbstractApplicationContext {
         this.getRegistry().clear();
     }
 
+    private void prepareContext() {
+        this.getRegistry().register(ApplicationContext.class, this);
+
+        this.getScanner().ignoreType(Configuration.class);
+        this.getScanner().ignoreType(Provides.class);
+    }
 }

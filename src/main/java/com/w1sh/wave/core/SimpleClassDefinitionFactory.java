@@ -1,6 +1,7 @@
 package com.w1sh.wave.core;
 
 import com.w1sh.wave.core.annotation.Component;
+import com.w1sh.wave.core.annotation.Conditional;
 import com.w1sh.wave.core.annotation.Inject;
 import com.w1sh.wave.core.annotation.Primary;
 import com.w1sh.wave.util.ReflectionUtils;
@@ -28,7 +29,8 @@ public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
         logger.debug("Creating component definition from class {}.", aClass);
         final var definition = new ComponentDefinition(aClass);
         final var constructor = findAnnotatedConstructor(aClass);
-        definition.setPrimary(aClass.isAnnotationPresent(Primary.class));
+        definition.setPrimary(ReflectionUtils.isAnnotationPresent(aClass, Primary.class));
+        definition.setConditional(ReflectionUtils.isAnnotationPresent(aClass, Conditional.class));
         definition.setInjectionPoint(ReflectionUtils.injectionPointFromExecutable(constructor));
         definition.setName(createComponentName(aClass, aClass.getAnnotation(Component.class).name()));
         return definition;
@@ -46,4 +48,5 @@ public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
     private String createComponentName(Class<?> aClass, String name) {
         return (name != null && !name.isBlank()) ? aClass.getPackageName() + "." + name : "";
     }
+
 }

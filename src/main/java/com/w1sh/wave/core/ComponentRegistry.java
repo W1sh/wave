@@ -1,10 +1,11 @@
 package com.w1sh.wave.core;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ComponentRegistry extends Configurable {
 
-    void initialize(List<Definition> definitions);
+    void initialize(Collection<Definition> definitions);
 
     <T> void register(Class<T> clazz, T instance);
 

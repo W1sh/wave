@@ -1,10 +1,13 @@
 package com.w1sh.wave.condition;
 
-import java.util.Set;
+import com.w1sh.wave.core.ContextMetadata;
+import com.w1sh.wave.core.Definition;
+
+import java.util.List;
 
 public interface FilteringConditionalProcessor {
 
-    Set<Class<?>> processConditionals(Set<Class<?>> classes);
+    List<Definition> processConditionals(ContextMetadata context);
 
     ConditionalProcessor getProcessor(Class<?> conditionalAnnotation);
 

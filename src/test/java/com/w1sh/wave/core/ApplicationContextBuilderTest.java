@@ -9,7 +9,7 @@ class ApplicationContextBuilderTest {
 
     @Test
     void should_returnApplicationContextInstance_whenBuildIsCalled(){
-        final GenericComponentScanner scanner = new GenericComponentScanner("");
+        final GenericComponentScanner scanner = new GenericComponentScanner();
         final GenericComponentRegistry registry = new GenericComponentRegistry();
         final ApplicationEnvironment environment = new ApplicationEnvironment();
         final ClassDefinitionFactory classDefinitionFactory = new SimpleClassDefinitionFactory();
@@ -27,7 +27,5 @@ class ApplicationContextBuilderTest {
         assertEquals(scanner, context.getScanner());
         assertEquals(registry, context.getRegistry());
         assertEquals(environment, context.getEnvironment());
-        assertEquals(classDefinitionFactory, context.getClassDefinitionFactory());
-        assertEquals(methodDefinitionFactory, context.getMethodDefinitionFactory());
     }
 }

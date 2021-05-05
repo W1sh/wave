@@ -1,8 +1,8 @@
 package com.w1sh.wave.condition;
 
-import java.util.Set;
+import com.w1sh.wave.core.ContextMetadata;
 
 public interface ConditionalProcessor {
 
-    boolean matches(Set<Class<?>> classes, Class<?> conditional);
+    boolean matches(ContextMetadata context, Class<?> conditional);
 }

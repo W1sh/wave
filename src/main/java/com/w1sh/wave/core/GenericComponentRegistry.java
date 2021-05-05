@@ -11,10 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GenericComponentRegistry implements ComponentRegistry {
@@ -34,7 +31,7 @@ public class GenericComponentRegistry implements ComponentRegistry {
     }
 
     @Override
-    public void initialize(List<Definition> definitionList){
+    public void initialize(Collection<Definition> definitionList){
         definitionList.forEach(definition -> definitions.put(definition.getClazz(), definition));
 
         for (Definition definition : definitions.values()) {
@@ -165,6 +162,9 @@ public class GenericComponentRegistry implements ComponentRegistry {
         return !getComponentsOfType(clazz).isEmpty();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void clear() {
         scope.clear();
