@@ -17,23 +17,15 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ApplicationContext implements ComponentRegistry {
+public class ApplicationContext extends AbstractApplicationContext {
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationContext.class);
 
     private final ComponentScanner scanner;
-    private final Map<Class<?>, Object> instances;
-    private final Map<Class<?>, Definition> classDefinitions;
-    private final Map<String, Object> namedInstances;
-
-    private AbstractApplicationEnvironment environment;
 
     public ApplicationContext(ComponentScanner scanner) {
-        this.instances = new HashMap<>(255);
-        this.classDefinitions = new HashMap<>(255);
-        this.namedInstances = new HashMap<>(255);
+        super();
         this.scanner = scanner;
-        setEnvironment(ApplicationEnvironment.builder().build());
     }
 
     public ApplicationContext(ComponentScanner scanner, AbstractApplicationEnvironment environment) {
@@ -41,33 +33,25 @@ public class ApplicationContext implements ComponentRegistry {
         setEnvironment(environment);
     }
 
-    public static ApplicationContextBuilder builder(){
+    public static ApplicationContextBuilder builder() {
         return new ApplicationContextBuilder();
     }
 
-    @Override
-    public <T> void register(Class<T> clazz, T instance) {
-        if (instances.containsKey(clazz) && !environment.isOverridingEnabled()) {
-            logger.info("Instance of class {} already exists in scope", clazz);
-            return;
-        }
-        instances.put(clazz, instance);
-    }
-
     private void register(Collection<Definition> definitions) {
+        final Map<Class<?>, Definition> classDefinitions = new HashMap<>(255);
         definitions.forEach(definition -> classDefinitions.put(definition.getClazz(), definition));
 
         for (Definition definition : classDefinitions.values()) {
             if (definition.getInjectionPoint() instanceof MethodInjectionPoint) {
                 final MethodInjectionPoint injectionPoint = ((MethodInjectionPoint) definition.getInjectionPoint());
                 register(classDefinitions.get(injectionPoint.getMethod().getDeclaringClass()));
-                injectionPoint.setInstanceConfigurationClass(instances.get(injectionPoint.getMethod().getDeclaringClass()));
+                injectionPoint.setInstanceConfigurationClass(getComponent(injectionPoint.getMethod().getDeclaringClass()));
             }
 
             for (Type parameterType : definition.getInjectionPoint().getParameterTypes()) {
                 if (parameterType instanceof Class) {
                     if (Modifier.isAbstract(((Class<?>) parameterType).getModifiers())) {
-                        final List<? extends Definition> definitionsOfType = getDefinitionsOfType(((Class<?>) parameterType));
+                        final List<? extends Definition> definitionsOfType = getDefinitionsOfType(((Class<?>) parameterType), classDefinitions);
                         definitionsOfType.forEach(this::register);
                     } else {
                         register(classDefinitions.get((Class<?>) parameterType));
@@ -79,85 +63,14 @@ public class ApplicationContext implements ComponentRegistry {
     }
 
     private void register(Definition definition) {
-        if (instances.containsKey(definition.getClazz()) && !environment.isOverridingEnabled()) {
-            logger.info("Instance of class {} already exists in scope", definition.getClazz());
-            return;
-        }
         final Object instance = createInstance(definition);
-        instances.put(definition.getClazz(), instance);
+        register(definition.getClazz(), instance);
         if (!definition.getName().isBlank()) {
-            namedInstances.put(definition.getName(), instance);
+            register(definition.getName(), instance);
         }
     }
 
     @Override
-    public <T> T getComponent(Class<T> clazz) {
-        if (instances.containsKey(clazz)) {
-            return clazz.cast(instances.get(clazz));
-        }
-
-        final List<T> componentsOfType = getComponentsOfType(clazz);
-        if (componentsOfType.isEmpty()) {
-            logger.error("No injection candidate found for class {}", clazz);
-            if (environment.isNullComponentsAllowed()) return null;
-            throw new UnsatisfiedComponentException("No injection candidate found for class " + clazz);
-        } else if (componentsOfType.size() == 1) {
-            return clazz.cast(componentsOfType.get(0));
-        }
-        return resolveCandidates(clazz, componentsOfType);
-    }
-
-    @Override
-    public Object getComponent(String name) {
-        final Object component = namedInstances.getOrDefault(name, null);
-        if (component == null && !environment.isNullComponentsAllowed()) {
-            throw new UnsatisfiedComponentException("No injection candidate found with name " + name);
-        }
-        return component;
-    }
-
-    @Override
-    public <T> T getComponent(String name, Class<T> clazz) {
-        final Object instance = getComponent(name);
-        return instance != null ? clazz.cast(instance) : null;
-    }
-
-    @Override
-    public <T> List<T> getComponentsOfType(Class<T> clazz) {
-        final List<T> candidates = new ArrayList<>();
-        for (Map.Entry<Class<?>, Object> scopeClazz : instances.entrySet()) {
-            if (clazz.isAssignableFrom(scopeClazz.getKey())){
-                candidates.add(clazz.cast(scopeClazz.getValue()));
-            }
-        }
-        return candidates;
-    }
-
-    @Override
-    public boolean containsComponent(Class<?> clazz) {
-        return !getComponentsOfType(clazz).isEmpty();
-    }
-
-    @Override
-    public boolean containsComponent(String name) {
-        return namedInstances.containsKey(name);
-    }
-
-    @Override
-    public Class<?> getType(String name) {
-        final Object component = getComponent(name);
-        if (component != null) {
-            return component.getClass();
-        }
-        return null;
-    }
-
-    @Override
-    public boolean isTypeMatch(String name, Class<?> clazz) {
-        final Class<?> type = getType(name);
-        return type != null && type.isAssignableFrom(clazz);
-    }
-
     public void initialize() {
         prepareContext();
 
@@ -183,13 +96,6 @@ public class ApplicationContext implements ComponentRegistry {
         register(passedConditionalDefinitions);
     }
 
-    @Override
-    public void clear() {
-        instances.clear();
-        classDefinitions.clear();
-        namedInstances.clear();
-    }
-
     private void prepareContext() {
         register(ApplicationContext.class, this);
 
@@ -198,36 +104,15 @@ public class ApplicationContext implements ComponentRegistry {
     }
 
     @Override
-    public AbstractApplicationEnvironment getEnvironment() {
-        return this.environment;
-    }
-
-    @Override
     public void setEnvironment(AbstractApplicationEnvironment environment) {
-        this.environment = environment;
+        super.setEnvironment(environment);
         this.scanner.setEnvironment(environment);
     }
 
-    private <T> T resolveCandidates(Class<T> clazz, List<T> componentsOfType){
-        final List<T> primaryCandidates = componentsOfType.stream()
-                .filter(component -> classDefinitions.get(component.getClass()).isPrimary())
-                .collect(Collectors.toList());
-
-        if (primaryCandidates.isEmpty()) {
-            logger.warn("Multiple injection candidates found for class {}", clazz);
-            logger.error("No primary candidate was defined for multiple injection candidates for class {}", clazz);
-            throw new UnsatisfiedComponentException("Multiple injection candidates found for class " + clazz);
-        } else if (primaryCandidates.size() > 1) {
-            logger.error("Multiple primary injection candidates found for class {}", clazz);
-            throw new UnsatisfiedComponentException("Multiple primary injection candidates found for class " + clazz);
-        }
-        return clazz.cast(primaryCandidates.get(0));
-    }
-
-    private List<Definition> getDefinitionsOfType(Class<?> clazz) {
+    private List<Definition> getDefinitionsOfType(Class<?> clazz, Map<Class<?>, Definition> definitionMap) {
         final List<Definition> candidates = new ArrayList<>();
-        for (Map.Entry<Class<?>, Definition> scopeClazz : classDefinitions.entrySet()) {
-            if (clazz.isAssignableFrom(scopeClazz.getKey())){
+        for (Map.Entry<Class<?>, Definition> scopeClazz : definitionMap.entrySet()) {
+            if (clazz.isAssignableFrom(scopeClazz.getKey())) {
                 candidates.add(scopeClazz.getValue());
             }
         }
