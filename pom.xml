@@ -16,7 +16,7 @@
         <reflections.version>0.9.12</reflections.version>
         <junit.version>5.7.1</junit.version>
         <slf4j.version>1.7.30</slf4j.version>
-        <mockito.version>3.9.0</mockito.version>
+        <mockito.version>3.10.0</mockito.version>
     </properties>
 
     <dependencies>
