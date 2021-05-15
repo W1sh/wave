@@ -8,17 +8,14 @@ import com.w1sh.wave.core.annotation.Qualifier;
 import com.w1sh.wave.core.exception.ComponentCreationException;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
-import java.util.Arrays;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class ReflectionUtils {
 
     private ReflectionUtils(){}
-
-    public static boolean isAnnotationPresent(AnnotatedElement annotatedElement, Class<? extends Annotation> annotation) {
-        return Arrays.stream(annotatedElement.getAnnotations())
-                .anyMatch(a -> a.annotationType().equals(annotation) || a.annotationType().isAnnotationPresent(annotation));
-    }
 
     public static InjectionPoint injectionPointFromExecutable(Executable executable) {
         final InjectionPoint injectionPoint = executable instanceof Constructor ?

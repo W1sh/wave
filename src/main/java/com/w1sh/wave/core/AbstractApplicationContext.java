@@ -2,7 +2,7 @@ package com.w1sh.wave.core;
 
 import com.w1sh.wave.core.annotation.Primary;
 import com.w1sh.wave.core.exception.UnsatisfiedComponentException;
-import com.w1sh.wave.util.ReflectionUtils;
+import com.w1sh.wave.util.Annotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +21,7 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
 
     private AbstractApplicationEnvironment environment;
 
-    public AbstractApplicationContext() {
+    protected AbstractApplicationContext() {
         this.instances = new HashMap<>(255);
         this.namedInstances = new HashMap<>(255);
         this.environment = ApplicationEnvironment.builder().build();
@@ -131,7 +131,7 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
 
     private <T> T resolveCandidates(Class<T> clazz, List<T> componentsOfType) {
         final List<T> primaryCandidates = componentsOfType.stream()
-                .filter(component -> ReflectionUtils.isAnnotationPresent(component.getClass(), Primary.class))
+                .filter(component -> Annotations.isAnnotationPresent(component.getClass(), Primary.class))
                 .collect(Collectors.toList());
 
         if (primaryCandidates.isEmpty()) {

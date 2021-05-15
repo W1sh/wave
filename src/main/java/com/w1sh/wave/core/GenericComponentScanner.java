@@ -4,7 +4,7 @@ import com.w1sh.wave.core.annotation.Component;
 import com.w1sh.wave.core.annotation.Configuration;
 import com.w1sh.wave.core.annotation.Profile;
 import com.w1sh.wave.core.annotation.Provides;
-import com.w1sh.wave.util.ReflectionUtils;
+import com.w1sh.wave.util.Annotations;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -83,7 +83,7 @@ public class GenericComponentScanner implements ComponentScanner {
     }
 
     private boolean isProfileActive(AnnotatedElement annotatedElement) {
-        return ReflectionUtils.isAnnotationPresent(annotatedElement, Profile.class) &&
+        return Annotations.isAnnotationPresent(annotatedElement, Profile.class) &&
                 environment.getActiveProfiles().contains(annotatedElement.getAnnotation(Profile.class).value());
     }
 

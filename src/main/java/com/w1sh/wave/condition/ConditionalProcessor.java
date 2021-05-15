@@ -1,8 +1,8 @@
 package com.w1sh.wave.condition;
 
-import com.w1sh.wave.core.ContextMetadata;
+import com.w1sh.wave.core.ApplicationContext;
 
 public interface ConditionalProcessor {
 
-    boolean matches(ContextMetadata context, Class<?> conditional);
+    boolean matches(ApplicationContext context, Class<?> conditional);
 }

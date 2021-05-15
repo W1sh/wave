@@ -1,12 +1,12 @@
 package com.w1sh.wave.condition;
 
-import com.w1sh.wave.core.ContextMetadata;
+import com.w1sh.wave.core.ApplicationContext;
 
 @Processor(ConditionalOnProperty.class)
 public class ConditionalOnPropertyProcessor implements ConditionalProcessor {
 
     @Override
-    public boolean matches(ContextMetadata context, Class<?> conditional) {
+    public boolean matches(ApplicationContext context, Class<?> conditional) {
         ConditionalOnProperty onProperty = conditional.getAnnotation(ConditionalOnProperty.class);
         return switch (onProperty.type()) {
             case SYSTEM -> matchesSystemProperty(onProperty);

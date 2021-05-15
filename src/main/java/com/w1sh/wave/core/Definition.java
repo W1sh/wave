@@ -7,6 +7,7 @@ public abstract class Definition {
     private String name;
     private boolean primary;
     private boolean conditional;
+    private DefinitionStatus status = DefinitionStatus.PENDING;
 
     protected Definition(Class<?> clazz) {
         this.clazz = clazz;
@@ -46,5 +47,25 @@ public abstract class Definition {
 
     public void setConditional(boolean conditional) {
         this.conditional = conditional;
+    }
+
+    public boolean isProcessed() {
+        return DefinitionStatus.PROCESSED.equals(status);
+    }
+
+    public void setProcessed() {
+        this.status = DefinitionStatus.PROCESSED;
+    }
+
+    public boolean isResolved() {
+        return DefinitionStatus.RESOLVED.equals(status);
+    }
+
+    public void setResolved() {
+        this.status = DefinitionStatus.RESOLVED;
+    }
+
+    private enum DefinitionStatus {
+        PENDING, PROCESSED, RESOLVED
     }
 }

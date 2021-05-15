@@ -1,16 +1,17 @@
 package com.w1sh.wave.core;
 
-import com.w1sh.wave.condition.FilteringConditionalProcessor;
+import com.w1sh.wave.condition.ConditionalOnComponent;
+import com.w1sh.wave.condition.ConditionalOnMissingComponent;
 import com.w1sh.wave.condition.SimpleFilteringConditionalProcessor;
-import com.w1sh.wave.core.annotation.Configuration;
-import com.w1sh.wave.core.annotation.Nullable;
-import com.w1sh.wave.core.annotation.Provides;
-import com.w1sh.wave.core.annotation.Qualifier;
+import com.w1sh.wave.core.annotation.*;
 import com.w1sh.wave.core.exception.UnsatisfiedComponentException;
+import com.w1sh.wave.util.Annotations;
 import com.w1sh.wave.util.ReflectionUtils;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -37,37 +38,118 @@ public class ApplicationContext extends AbstractApplicationContext {
         return new ApplicationContextBuilder();
     }
 
+    /**
+     * Register an instance for all the {@link Definition} provided within this context.
+     *
+     * @param definitions The {@code definitions} to register.
+     */
     private void register(Collection<Definition> definitions) {
-        final Map<Class<?>, Definition> classDefinitions = new HashMap<>(255);
-        definitions.forEach(definition -> classDefinitions.put(definition.getClazz(), definition));
+        final Map<Class<?>, Definition> classDefinitions = definitions.stream()
+                .collect(Collectors.toMap(Definition::getClazz, definition -> definition));
 
         for (Definition definition : classDefinitions.values()) {
-            if (definition.getInjectionPoint() instanceof MethodInjectionPoint) {
-                final MethodInjectionPoint injectionPoint = ((MethodInjectionPoint) definition.getInjectionPoint());
-                register(classDefinitions.get(injectionPoint.getMethod().getDeclaringClass()));
-                injectionPoint.setInstanceConfigurationClass(getComponent(injectionPoint.getMethod().getDeclaringClass()));
-            }
-
-            for (Type parameterType : definition.getInjectionPoint().getParameterTypes()) {
-                if (parameterType instanceof Class) {
-                    if (Modifier.isAbstract(((Class<?>) parameterType).getModifiers())) {
-                        final List<? extends Definition> definitionsOfType = getDefinitionsOfType(((Class<?>) parameterType), classDefinitions);
-                        definitionsOfType.forEach(this::register);
-                    } else {
-                        register(classDefinitions.get((Class<?>) parameterType));
-                    }
-                }
-            }
-            register(definition);
+            register(definition, classDefinitions);
         }
     }
 
-    private void register(Definition definition) {
-        final Object instance = createInstance(definition);
+    /**
+     * Registers an instance of the {@link Definition} provided within this context.
+     * <br>
+     * If the {@code Definition} has an {@link InjectionPoint} with parameters, then those will be resolved
+     * before this.
+     * <br>
+     * If the {@code Definition} has a {@link MethodInjectionPoint}, then the declaring class will be resolved
+     * before this.
+     *
+     * @param definition  The {@code Definition} to create an instance for.
+     * @param definitions The {@code Map<Class<?>, Definition>} containing all the classes with a {@code Definition}.
+     */
+    private void register(Definition definition, Map<Class<?>, Definition> definitions) {
+        if (definition.isResolved()) {
+            logger.debug("Definition for class {} has already been resolved.", definition.getClazz());
+            return;
+        }
+
+        if (definition.isConditional() && !canConditionalBeInitialized(definition, definitions)) {
+            logger.debug("Conditional for class {} evaluated to false. No instance will be created.", definition.getClazz());
+            return;
+        }
+
+        if (definition.getInjectionPoint() instanceof MethodInjectionPoint) {
+            logger.debug("Definition has method injection point, registering declaring class.");
+            registerDeclaringClass(definition, definitions);
+        }
+
+        registerParameters(definition, definitions);
+
+        final var instance = createInstance(definition);
         register(definition.getClazz(), instance);
         if (!definition.getName().isBlank()) {
             register(definition.getName(), instance);
         }
+        definition.setResolved();
+    }
+
+    /**
+     * Registers the components that the provided {@link Definition} depends on to be initialized. If the type of the
+     * parameter is abstract, it will register all subtypes found in the {@code Map<Class<?>, Definition>} provided.
+     *
+     * @param definition  The {@code Definition} to create an instance for.
+     * @param definitions The {@code Map<Class<?>, Definition>} containing all the classes with a {@code Definition}.
+     */
+    private void registerParameters(Definition definition, Map<Class<?>, Definition> definitions) {
+        for (Type parameterType : definition.getInjectionPoint().getParameterTypes()) {
+            if (parameterType instanceof Class) {
+                final Class<?> type = (Class<?>) parameterType;
+                if (definitions.containsKey(parameterType)) {
+                    register(definitions.get(type), definitions);
+                } else if (Modifier.isAbstract(type.getModifiers())) {
+                    final var definitionsOfType = getDefinitionsOfType(type, definitions);
+                    definitionsOfType.forEach(d -> register(d, definitions));
+                } else {
+                    // throw, unable to resolve parameter
+                }
+            }
+        }
+    }
+
+    /**
+     * Retrieves the declaring class of a {@link MethodInjectionPoint} and calls to register it within this context.
+     *
+     * @param definition  The {@code Definition} to create an instance for.
+     * @param definitions The {@code Map<Class<?>, Definition>} containing all the classes with a {@code Definition}.
+     */
+    private void registerDeclaringClass(Definition definition, Map<Class<?>, Definition> definitions) {
+        final var injectionPoint = ((MethodInjectionPoint) definition.getInjectionPoint());
+        final var declaringClass = injectionPoint.getMethod().getDeclaringClass();
+        if (definitions.containsKey(declaringClass)) {
+            register(definitions.get(declaringClass), definitions);
+            injectionPoint.setInstanceConfigurationClass(getComponent(declaringClass));
+        } else {
+            // throw, method injection point in non-configuration class
+        }
+    }
+
+    private boolean canConditionalBeInitialized(Definition definition, Map<Class<?>, Definition> definitions) {
+        for (Annotation conditional : Annotations.getAnnotationsOfType(definition.getClazz(), Conditional.class)) {
+            if (conditional instanceof ConditionalOnComponent) {
+                for (Class<?> aClass : ((ConditionalOnComponent) conditional).value()) {
+                    final Definition classDef = Optional.ofNullable(definitions.getOrDefault(aClass, null))
+                            .orElseThrow(() -> new UnsatisfiedComponentException("Conditional class depends on non-component class " + aClass));
+                    register(classDef, definitions);
+                }
+            }
+            if (conditional instanceof ConditionalOnMissingComponent) {
+                for (Class<?> aClass : ((ConditionalOnMissingComponent) conditional).value()) {
+                    final Definition classDef = Optional.ofNullable(definitions.getOrDefault(aClass, null))
+                            .orElseThrow(() -> new UnsatisfiedComponentException("Conditional class depends on non-component class " + aClass));
+                    register(classDef, definitions);
+                }
+            }
+        }
+
+        final var conditionalProcessor = new SimpleFilteringConditionalProcessor(new Reflections(""));
+        return conditionalProcessor.evaluate(this, definition);
     }
 
     @Override
@@ -75,25 +157,8 @@ public class ApplicationContext extends AbstractApplicationContext {
         prepareContext();
 
         final List<Definition> definitions = scanner.scan();
-        // separate conditional definitions
-        final List<Definition> conditionalDefinitions = definitions.stream()
-                .filter(Definition::isConditional)
-                .collect(Collectors.toList());
 
-        definitions.removeAll(conditionalDefinitions);
-
-        // register non conditional definitions
         register(definitions);
-
-        // create current context and pass it onto conditional processor
-        var contextMetadata = new ContextMetadata(this, conditionalDefinitions, getEnvironment());
-        FilteringConditionalProcessor conditionalProcessor = new SimpleFilteringConditionalProcessor(null);
-
-        // filter conditional definitions based on components already initialized
-        final List<Definition> passedConditionalDefinitions = conditionalProcessor.processConditionals(contextMetadata);
-
-        // register conditional definitions
-        register(passedConditionalDefinitions);
     }
 
     private void prepareContext() {
