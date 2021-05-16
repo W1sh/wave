@@ -14,6 +14,7 @@ import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.util.Collection;
 import java.util.HashSet;
@@ -55,6 +56,11 @@ public class GenericComponentScanner implements ComponentScanner {
         return Stream.of(scanClasses(), scanMethods()).flatMap(Collection::stream).collect(Collectors.toList());
     }
 
+    @Override
+    public void ignoreType(Class<?> clazz) {
+        typesToIgnore.add(clazz);
+    }
+
     private List<Definition> scanClasses() {
         logger.debug("Scanning in defined package for annotated classes");
         final Set<Class<?>> componentClasses = reflections.getTypesAnnotatedWith(Component.class);
@@ -77,14 +83,11 @@ public class GenericComponentScanner implements ComponentScanner {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public void ignoreType(Class<?> clazz) {
-        typesToIgnore.add(clazz);
-    }
-
     private boolean isProfileActive(AnnotatedElement annotatedElement) {
-        return Annotations.isAnnotationPresent(annotatedElement, Profile.class) &&
-                environment.getActiveProfiles().contains(annotatedElement.getAnnotation(Profile.class).value());
+        final List<Annotation> annotationsOfType = Annotations.getAnnotationsOfType(annotatedElement, Profile.class);
+        return annotationsOfType.stream()
+                .map(annotation -> ((Profile) annotation).value())
+                .anyMatch(env -> environment.getActiveProfiles().contains(env));
     }
 
     @Override
