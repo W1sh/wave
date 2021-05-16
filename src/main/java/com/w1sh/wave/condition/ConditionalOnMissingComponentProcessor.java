@@ -10,6 +10,7 @@ public class ConditionalOnMissingComponentProcessor implements ConditionalProces
     @Override
     public boolean matches(ApplicationContext context, Class<?> conditional) {
         ConditionalOnMissingComponent onMissingComponent = conditional.getAnnotation(ConditionalOnMissingComponent.class);
-        return List.of(onMissingComponent.value()).stream().noneMatch(context::containsComponent);
+        return List.of(onMissingComponent.value()).stream().noneMatch(context::containsComponent) &&
+                List.of(onMissingComponent.names()).stream().noneMatch(context::containsComponent);
     }
 }

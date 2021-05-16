@@ -13,4 +13,6 @@ import java.lang.annotation.Target;
 public @interface ConditionalOnComponent {
 
     Class<?>[] value() default {};
+
+    String[] names() default {};
 }
