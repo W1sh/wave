@@ -4,9 +4,15 @@ import java.util.List;
 
 public class ApplicationEnvironmentBuilder {
 
+    private String packagePrefix = "";
     private List<String> activeProfiles;
     private boolean overridingEnabled;
     private boolean allowNullComponents;
+
+    public ApplicationEnvironmentBuilder setPackagePrefix(String packagePrefix) {
+        this.packagePrefix = packagePrefix;
+        return this;
+    }
 
     public ApplicationEnvironmentBuilder setOverridingEnabled(boolean overridingEnabled) {
         this.overridingEnabled = overridingEnabled;
@@ -24,7 +30,11 @@ public class ApplicationEnvironmentBuilder {
     }
 
     public ApplicationEnvironment build() {
-        return new ApplicationEnvironment(overridingEnabled, allowNullComponents, activeProfiles);
+        return new ApplicationEnvironment(packagePrefix, overridingEnabled, allowNullComponents, activeProfiles);
+    }
+
+    public String getPackagePrefix() {
+        return packagePrefix;
     }
 
     public List<String> getActiveProfiles() {

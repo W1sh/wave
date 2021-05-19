@@ -1,13 +1,10 @@
 package com.w1sh.wave.core;
 
-import java.lang.reflect.Method;
-import java.util.Set;
+import java.util.List;
 
 public interface ComponentScanner extends Configurable {
 
-    Set<Class<?>> scanClasses();
-
-    Set<Method> scanMethods();
+    List<Definition> scan();
 
     void ignoreType(Class<?> clazz);
 }

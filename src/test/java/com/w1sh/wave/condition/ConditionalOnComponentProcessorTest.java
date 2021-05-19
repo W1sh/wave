@@ -1,34 +1,36 @@
 package com.w1sh.wave.condition;
 
+import com.w1sh.wave.core.ApplicationContext;
 import com.w1sh.wave.example.service.impl.CalculatorServiceImpl;
 import com.w1sh.wave.example.service.impl.DuplicateCalculatorServiceImpl;
-import com.w1sh.wave.example.service.impl.LazyServiceImpl;
 import org.junit.jupiter.api.Test;
-
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
 
 class ConditionalOnComponentProcessorTest {
 
+    private final ApplicationContext context = mock(ApplicationContext.class);
     private final ConditionalOnComponentProcessor processor = new ConditionalOnComponentProcessor();
 
     @Test
     void should_returnTrue_WhenGivenConditionalValuesArePresentInContext() {
-        final Set<Class<?>> classes = Set.of(CalculatorServiceImpl.class);
+        when(context.containsComponent(CalculatorServiceImpl.class)).thenReturn(true);
 
-        final boolean matches = processor.matches(classes, DuplicateCalculatorServiceImpl.class);
+        final boolean matches = processor.matches(context, DuplicateCalculatorServiceImpl.class);
 
+        verify(context, times(1)).containsComponent(any(Class.class));
         assertTrue(matches);
     }
 
     @Test
     void should_returnFalse_WhenGivenConditionalValuesAreNotPresentInContext() {
-        final Set<Class<?>> classes = Set.of(LazyServiceImpl.class);
+        when(context.containsComponent(CalculatorServiceImpl.class)).thenReturn(false);
 
-        final boolean matches = processor.matches(classes, DuplicateCalculatorServiceImpl.class);
+        final boolean matches = processor.matches(context, DuplicateCalculatorServiceImpl.class);
 
+        verify(context, times(1)).containsComponent(any(Class.class));
         assertFalse(matches);
     }
 }

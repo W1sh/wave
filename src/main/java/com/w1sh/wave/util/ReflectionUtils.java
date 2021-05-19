@@ -1,7 +1,7 @@
 package com.w1sh.wave.util;
 
-import com.w1sh.wave.core.InjectionPoint;
 import com.w1sh.wave.core.ConstructorInjectionPoint;
+import com.w1sh.wave.core.InjectionPoint;
 import com.w1sh.wave.core.MethodInjectionPoint;
 import com.w1sh.wave.core.annotation.Nullable;
 import com.w1sh.wave.core.annotation.Qualifier;

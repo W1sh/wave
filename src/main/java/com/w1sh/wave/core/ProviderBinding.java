@@ -8,11 +8,11 @@ public class ProviderBinding<T> implements Provider<T>{
 
     private final Supplier<T> supplier;
 
-    public ProviderBinding(Class<T> clazz, ComponentRegistry context) {
+    public ProviderBinding(Class<T> clazz, Registry context) {
         this.supplier = () -> context.getComponent(clazz);
     }
 
-    public ProviderBinding(Class<T> clazz, String name, ComponentRegistry context) {
+    public ProviderBinding(Class<T> clazz, String name, Registry context) {
         this.supplier = () -> context.getComponent(name, clazz);
     }
 

@@ -6,8 +6,9 @@ public class ApplicationEnvironment extends AbstractApplicationEnvironment {
 
     public ApplicationEnvironment() { }
 
-    public ApplicationEnvironment(boolean overridingEnabled, boolean allowNullComponents, List<String> activeProfiles) {
-        super(overridingEnabled, allowNullComponents, activeProfiles);
+    public ApplicationEnvironment(String packagePrefix, boolean overridingEnabled, boolean nullComponentsAllowed,
+                                  List<String> activeProfiles) {
+        super(packagePrefix, overridingEnabled, nullComponentsAllowed, activeProfiles);
     }
 
     public static ApplicationEnvironmentBuilder builder() {
