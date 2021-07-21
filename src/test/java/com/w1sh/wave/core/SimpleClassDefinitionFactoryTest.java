@@ -19,6 +19,7 @@ class SimpleClassDefinitionFactoryTest {
 
         assertComponentDefinitionIsProperlyDefined(definition);
         assertFalse(definition.isPrimary());
+        assertFalse(definition.isPriority());
     }
 
     @Test
@@ -46,6 +47,7 @@ class SimpleClassDefinitionFactoryTest {
 
         assertComponentDefinitionIsProperlyDefined(definition);
         assertEquals(1, definition.getInjectionPoint().getParameterTypes().length);
+        assertNotNull(definition.getPriority());
         assertFalse(definition.isPrimary());
     }
 

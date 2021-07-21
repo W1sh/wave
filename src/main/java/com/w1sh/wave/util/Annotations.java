@@ -4,9 +4,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class Annotations {
+public final class Annotations {
 
     private Annotations(){}
 
@@ -19,5 +20,11 @@ public class Annotations {
         return Arrays.stream(annotatedElement.getAnnotations())
                 .filter(a -> a.annotationType().equals(annotation) || a.annotationType().isAnnotationPresent(annotation))
                 .collect(Collectors.toList());
+    }
+
+    public static Optional<Annotation> getAnnotationOfType(AnnotatedElement annotatedElement, Class<? extends Annotation> annotation) {
+        return Arrays.stream(annotatedElement.getAnnotations())
+                .filter(a -> a.annotationType().equals(annotation) || a.annotationType().isAnnotationPresent(annotation))
+                .findFirst();
     }
 }

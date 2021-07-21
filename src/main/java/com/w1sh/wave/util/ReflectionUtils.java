@@ -13,7 +13,7 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class ReflectionUtils {
+public final class ReflectionUtils {
 
     private ReflectionUtils(){}
 

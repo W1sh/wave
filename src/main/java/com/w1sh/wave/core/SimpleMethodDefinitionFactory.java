@@ -2,6 +2,7 @@ package com.w1sh.wave.core;
 
 import com.w1sh.wave.core.annotation.Conditional;
 import com.w1sh.wave.core.annotation.Primary;
+import com.w1sh.wave.core.annotation.Priority;
 import com.w1sh.wave.util.Annotations;
 import com.w1sh.wave.util.ReflectionUtils;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ public class SimpleMethodDefinitionFactory implements MethodDefinitionFactory {
         final var definition = new ComponentDefinition(method.getReturnType());
         definition.setPrimary(Annotations.isAnnotationPresent(method, Primary.class));
         definition.setConditional(Annotations.isAnnotationPresent(method, Conditional.class));
+        definition.setPriority((Priority) Annotations.getAnnotationOfType(method, Priority.class).orElse(null));
         definition.setInjectionPoint(ReflectionUtils.injectionPointFromExecutable(method));
         definition.setName(method.getName());
         return definition;

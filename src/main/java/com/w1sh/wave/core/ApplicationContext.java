@@ -47,6 +47,12 @@ public class ApplicationContext extends AbstractApplicationContext {
         final Map<Class<?>, Definition> classDefinitions = definitions.stream()
                 .collect(Collectors.toMap(Definition::getClazz, definition -> definition));
 
+        // register prioritized definitions first
+        definitions.stream()
+                .filter(Definition::isPriority)
+                .sorted(Comparator.comparingInt(definition -> definition.getPriority().value()))
+                .forEach(definition -> register(definition, classDefinitions));
+
         for (Definition definition : classDefinitions.values()) {
             register(definition, classDefinitions);
         }

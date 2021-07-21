@@ -1,9 +1,6 @@
 package com.w1sh.wave.core;
 
-import com.w1sh.wave.core.annotation.Component;
-import com.w1sh.wave.core.annotation.Conditional;
-import com.w1sh.wave.core.annotation.Inject;
-import com.w1sh.wave.core.annotation.Primary;
+import com.w1sh.wave.core.annotation.*;
 import com.w1sh.wave.util.Annotations;
 import com.w1sh.wave.util.ReflectionUtils;
 import org.slf4j.Logger;
@@ -32,6 +29,7 @@ public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
         final var constructor = findAnnotatedConstructor(aClass);
         definition.setPrimary(Annotations.isAnnotationPresent(aClass, Primary.class));
         definition.setConditional(Annotations.isAnnotationPresent(aClass, Conditional.class));
+        definition.setPriority((Priority) Annotations.getAnnotationOfType(aClass, Priority.class).orElse(null));
         definition.setInjectionPoint(ReflectionUtils.injectionPointFromExecutable(constructor));
         definition.setName(createComponentName(aClass, aClass.getAnnotation(Component.class).name()));
         return definition;

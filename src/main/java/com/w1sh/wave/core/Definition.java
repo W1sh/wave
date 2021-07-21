@@ -1,5 +1,7 @@
 package com.w1sh.wave.core;
 
+import com.w1sh.wave.core.annotation.Priority;
+
 public abstract class Definition {
 
     private final Class<?> clazz;
@@ -7,6 +9,7 @@ public abstract class Definition {
     private String name;
     private boolean primary;
     private boolean conditional;
+    private Priority priority;
     private DefinitionStatus status = DefinitionStatus.PENDING;
 
     protected Definition(Class<?> clazz) {
@@ -63,6 +66,18 @@ public abstract class Definition {
 
     public void setResolved() {
         this.status = DefinitionStatus.RESOLVED;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public boolean isPriority() {
+        return priority != null;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
     }
 
     private enum DefinitionStatus {
