@@ -12,6 +12,7 @@ import java.lang.reflect.Modifier;
 public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleClassDefinitionFactory.class);
+    private final ComponentNameGenerator nameGenerator = new SimpleComponentNameGenerator();
 
     @Override
     public Definition create(Class<?> clazz) {
@@ -31,7 +32,7 @@ public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
         definition.setConditional(Annotations.isAnnotationPresent(aClass, Conditional.class));
         definition.setPriority((Priority) Annotations.getAnnotationOfType(aClass, Priority.class).orElse(null));
         definition.setInjectionPoint(ReflectionUtils.injectionPointFromExecutable(constructor));
-        definition.setName(createComponentName(aClass, aClass.getAnnotation(Component.class).name()));
+        definition.setName(nameGenerator.generate(aClass, aClass.getAnnotation(Component.class)));
         return definition;
     }
 
@@ -43,9 +44,4 @@ public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
         }
         return aClass.getConstructors()[0];
     }
-
-    private String createComponentName(Class<?> aClass, String name) {
-        return (name != null && !name.isBlank()) ? aClass.getPackageName() + "." + name : "";
-    }
-
 }
