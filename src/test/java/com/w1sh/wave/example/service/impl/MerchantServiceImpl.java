@@ -6,6 +6,8 @@ import com.w1sh.wave.core.annotation.Priority;
 import com.w1sh.wave.example.service.CalculatorService;
 import com.w1sh.wave.example.service.MerchantService;
 
+import javax.annotation.PostConstruct;
+
 @Component
 @Priority(1)
 public class MerchantServiceImpl implements MerchantService {
@@ -20,4 +22,7 @@ public class MerchantServiceImpl implements MerchantService {
     public CalculatorService getCalculatorService() {
         return calculatorService;
     }
+
+    @PostConstruct
+    public void init() {}
 }

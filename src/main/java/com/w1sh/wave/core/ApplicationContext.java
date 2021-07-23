@@ -12,9 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -88,7 +86,29 @@ public class ApplicationContext extends AbstractApplicationContext {
         if (!definition.getName().isBlank()) {
             register(definition.getName(), instance);
         }
+
+        processPostConstructors(definition, instance);
+
         definition.setResolved();
+    }
+
+    /**
+     * Invokes all the methods annotated with {@link javax.annotation.PostConstruct} annotation for the given instance.
+     *
+     * @param definition The {@code Definition} for the {@code Object} instance passed.
+     * @param instance The object instance to invoke the methods on.
+     */
+    private void processPostConstructors(Definition definition, Object instance) {
+        try {
+            for (Method postConstructorMethod : definition.getPostConstructorMethods()) {
+                logger.debug("Invoking post constructor method for class {}", definition.getClazz());
+                postConstructorMethod.invoke(instance);
+            }
+        } catch (IllegalAccessException e) {
+            // throw, unable to invoke post constructor
+        } catch (InvocationTargetException e) {
+            // throw, unable to invoke post constructor
+        }
     }
 
     /**

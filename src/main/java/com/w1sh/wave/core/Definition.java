@@ -2,6 +2,9 @@ package com.w1sh.wave.core;
 
 import com.w1sh.wave.core.annotation.Priority;
 
+import java.lang.reflect.Method;
+import java.util.List;
+
 public abstract class Definition {
 
     private final Class<?> clazz;
@@ -10,6 +13,7 @@ public abstract class Definition {
     private boolean primary;
     private boolean conditional;
     private Priority priority;
+    private List<Method> postConstructorMethods;
     private DefinitionStatus status = DefinitionStatus.PENDING;
 
     protected Definition(Class<?> clazz) {
@@ -78,6 +82,14 @@ public abstract class Definition {
 
     public void setPriority(Priority priority) {
         this.priority = priority;
+    }
+
+    public List<Method> getPostConstructorMethods() {
+        return postConstructorMethods;
+    }
+
+    public void setPostConstructorMethods(List<Method> postConstructorMethods) {
+        this.postConstructorMethods = postConstructorMethods;
     }
 
     private enum DefinitionStatus {

@@ -6,8 +6,12 @@ import com.w1sh.wave.util.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
 
@@ -33,7 +37,19 @@ public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
         definition.setPriority((Priority) Annotations.getAnnotationOfType(aClass, Priority.class).orElse(null));
         definition.setInjectionPoint(ReflectionUtils.injectionPointFromExecutable(constructor));
         definition.setName(nameGenerator.generate(aClass, aClass.getAnnotation(Component.class)));
+
+        retrievePostConstructorMethods(aClass, definition);
         return definition;
+    }
+
+    private void retrievePostConstructorMethods(Class<?> aClass, ComponentDefinition definition) {
+        final List<Method> postConstructorMethods = new ArrayList<>();
+        for (Method method : aClass.getMethods()) {
+            if (Annotations.isAnnotationPresent(method, PostConstruct.class)) {
+                postConstructorMethods.add(method);
+            }
+        }
+        definition.setPostConstructorMethods(postConstructorMethods);
     }
 
     private Constructor<?> findAnnotatedConstructor(Class<?> aClass) {
