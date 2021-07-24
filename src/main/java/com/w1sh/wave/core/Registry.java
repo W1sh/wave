@@ -25,9 +25,4 @@ public interface Registry {
     boolean containsComponent(Class<?> clazz);
 
     boolean containsComponent(Class<?> clazz, boolean allowSearchSubclasses);
-
-    /**
-     * Clears the registry of all the components and metadata
-     */
-    void clear();
 }

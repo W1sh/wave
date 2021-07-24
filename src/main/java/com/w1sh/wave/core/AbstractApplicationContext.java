@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class AbstractApplicationContext implements Registry, Configurable {
+public abstract class AbstractApplicationContext implements Registry, Configurable, AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractApplicationContext.class);
 
@@ -123,12 +123,6 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
         return type != null && type.isAssignableFrom(clazz);
     }
 
-    @Override
-    public void clear() {
-        instances.clear();
-        namedInstances.clear();
-    }
-
     private <T> T resolveCandidates(Class<T> clazz, List<T> componentsOfType) {
         final List<T> primaryCandidates = componentsOfType.stream()
                 .filter(component -> Annotations.isAnnotationPresent(component.getClass(), Primary.class))
@@ -153,5 +147,11 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
     @Override
     public void setEnvironment(AbstractApplicationEnvironment environment) {
         this.environment = environment;
+    }
+
+    @Override
+    public void close() throws Exception {
+        instances.clear();
+        namedInstances.clear();
     }
 }
