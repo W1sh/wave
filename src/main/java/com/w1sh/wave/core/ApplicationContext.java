@@ -3,16 +3,18 @@ package com.w1sh.wave.core;
 import com.w1sh.wave.condition.ConditionalOnComponent;
 import com.w1sh.wave.condition.ConditionalOnMissingComponent;
 import com.w1sh.wave.condition.SimpleFilteringConditionalProcessor;
-import com.w1sh.wave.core.annotation.*;
+import com.w1sh.wave.core.annotation.Conditional;
+import com.w1sh.wave.core.annotation.Configuration;
+import com.w1sh.wave.core.annotation.Provides;
 import com.w1sh.wave.core.exception.UnsatisfiedComponentException;
 import com.w1sh.wave.util.Annotations;
-import com.w1sh.wave.util.ReflectionUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -81,34 +83,9 @@ public class ApplicationContext extends AbstractApplicationContext {
 
         registerParameters(definition, definitions);
 
-        final var instance = createInstance(definition);
-        register(definition.getClazz(), instance);
-        if (!definition.getName().isBlank()) {
-            register(definition.getName(), instance);
-        }
-
-        processPostConstructors(definition, instance);
+        register(definition);
 
         definition.setResolved();
-    }
-
-    /**
-     * Invokes all the methods annotated with {@link javax.annotation.PostConstruct} annotation for the given instance.
-     *
-     * @param definition The {@code Definition} for the {@code Object} instance passed.
-     * @param instance The object instance to invoke the methods on.
-     */
-    private void processPostConstructors(Definition definition, Object instance) {
-        try {
-            for (Method postConstructorMethod : definition.getPostConstructorMethods()) {
-                logger.debug("Invoking post constructor method for class {}", definition.getClazz());
-                postConstructorMethod.invoke(instance);
-            }
-        } catch (IllegalAccessException e) {
-            // throw, unable to invoke post constructor
-        } catch (InvocationTargetException e) {
-            // throw, unable to invoke post constructor
-        }
     }
 
     /**
@@ -203,61 +180,6 @@ public class ApplicationContext extends AbstractApplicationContext {
             }
         }
         return candidates;
-    }
-
-    private Object createInstance(Definition definition) {
-        if (definition.getInjectionPoint().getParameterTypes() == null) {
-            return ReflectionUtils.newInstance(definition.getInjectionPoint(), new Object[]{});
-        }
-
-        final Object[] params = new Object[definition.getInjectionPoint().getParameterTypes().length];
-        for (int i = 0; i < definition.getInjectionPoint().getParameterTypes().length; i++) {
-            final Type paramType = definition.getInjectionPoint().getParameterTypes()[i];
-            final Qualifier qualifier = definition.getInjectionPoint().getQualifiers()[i];
-            final Nullable nullable = definition.getInjectionPoint().getNullables()[i];
-
-            if (paramType instanceof ParameterizedType) {
-                params[i] = handleParameterizedType((ParameterizedType) paramType, qualifier);
-            } else {
-                params[i] = getComponent((Class<?>) paramType, qualifier, nullable);
-            }
-        }
-        return ReflectionUtils.newInstance(definition.getInjectionPoint(), params);
-    }
-
-    private Object handleParameterizedType(ParameterizedType type, Qualifier qualifier) {
-        if (type.getRawType().equals(Lazy.class)) {
-            if (qualifier != null) {
-                return new LazyBinding<>((Class<?>) type.getActualTypeArguments()[0], qualifier.name(), this);
-            } else {
-                return new LazyBinding<>((Class<?>) type.getActualTypeArguments()[0], this);
-            }
-        }
-
-        if (type.getRawType().equals(Provider.class)) {
-            if (qualifier != null) {
-                return new ProviderBinding<>((Class<?>) type.getActualTypeArguments()[0], qualifier.name(), this);
-            } else {
-                return new ProviderBinding<>((Class<?>) type.getActualTypeArguments()[0], this);
-            }
-        }
-
-        return getComponent((Class<?>) type.getRawType(), qualifier, null);
-    }
-
-    private Object getComponent(Class<?> clazz, Qualifier qualifier, Nullable nullable) {
-        try {
-            if (qualifier != null) {
-                return getComponent(qualifier.name(), clazz);
-            } else {
-                return getComponent(clazz);
-            }
-        } catch (UnsatisfiedComponentException e) {
-            if (nullable != null) {
-                return null;
-            }
-            throw e;
-        }
     }
 
     public ComponentScanner getScanner() {

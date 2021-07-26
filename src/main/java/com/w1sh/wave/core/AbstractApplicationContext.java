@@ -1,33 +1,57 @@
 package com.w1sh.wave.core;
 
+import com.w1sh.wave.core.annotation.Nullable;
 import com.w1sh.wave.core.annotation.Primary;
+import com.w1sh.wave.core.annotation.Qualifier;
 import com.w1sh.wave.core.exception.UnsatisfiedComponentException;
 import com.w1sh.wave.util.Annotations;
+import com.w1sh.wave.util.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class AbstractApplicationContext implements Registry, Configurable, AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractApplicationContext.class);
 
-    private final Map<Class<?>, Object> instances;
-    private final Map<String, Object> namedInstances;
+    private final Map<String, Object> namedInstances = new ConcurrentHashMap<>(256);
+    private final Map<Class<?>, Definition> definitions = new ConcurrentHashMap<>(256);
+    private final Map<Class<?>, Object> instances = new ConcurrentHashMap<>(256);
+    private final Map<Class<?>, ObjectProvider<?>> providers = new ConcurrentHashMap<>(256);
 
     private AbstractApplicationEnvironment environment;
 
     protected AbstractApplicationContext() {
-        this.instances = new HashMap<>(255);
-        this.namedInstances = new HashMap<>(255);
         this.environment = ApplicationEnvironment.builder().build();
     }
 
     protected abstract void initialize();
+
+    @Override
+    public void register(Definition definition) {
+        final var clazz = definition.getClazz();
+        definitions.put(clazz, definition);
+
+        final var provider = createObjectProvider(definition);
+        providers.put(clazz, provider);
+
+        // early initialization of the singleton instance
+        final var instance = provider.singletonInstance();
+        if (!definition.getName().isBlank()) {
+            register(definition.getName(), instance);
+        }
+        register(clazz, instance);
+    }
 
     @Override
     public void register(Class<?> clazz, Object instance) {
@@ -153,5 +177,88 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
     public void close() throws Exception {
         instances.clear();
         namedInstances.clear();
+    }
+
+    private ObjectProvider<?> createObjectProvider(Definition definition) {
+        final Supplier<?> supplier = () -> {
+            final var instance = createInstance(definition);
+            processPostConstructors(definition, instance);
+            return instance;
+        };
+        return new SimpleObjectProvider<>(supplier);
+    }
+
+    private Object createInstance(Definition definition) {
+        if (definition.getInjectionPoint().getParameterTypes() == null) {
+            return ReflectionUtils.newInstance(definition.getInjectionPoint(), new Object[]{});
+        }
+
+        final Object[] params = new Object[definition.getInjectionPoint().getParameterTypes().length];
+        for (int i = 0; i < definition.getInjectionPoint().getParameterTypes().length; i++) {
+            final Type paramType = definition.getInjectionPoint().getParameterTypes()[i];
+            final Qualifier qualifier = definition.getInjectionPoint().getQualifiers()[i];
+            final Nullable nullable = definition.getInjectionPoint().getNullables()[i];
+
+            if (paramType instanceof ParameterizedType) {
+                params[i] = handleParameterizedType((ParameterizedType) paramType, qualifier);
+            } else {
+                params[i] = getComponent((Class<?>) paramType, qualifier, nullable);
+            }
+        }
+        return ReflectionUtils.newInstance(definition.getInjectionPoint(), params);
+    }
+
+    private Object handleParameterizedType(ParameterizedType type, Qualifier qualifier) {
+        if (type.getRawType().equals(Lazy.class)) {
+            if (qualifier != null) {
+                return new LazyBinding<>((Class<?>) type.getActualTypeArguments()[0], qualifier.name(), this);
+            } else {
+                return new LazyBinding<>((Class<?>) type.getActualTypeArguments()[0], this);
+            }
+        }
+
+        if (type.getRawType().equals(Provider.class)) {
+            if (qualifier != null) {
+                return new ProviderBinding<>((Class<?>) type.getActualTypeArguments()[0], qualifier.name(), this);
+            } else {
+                return new ProviderBinding<>((Class<?>) type.getActualTypeArguments()[0], this);
+            }
+        }
+
+        return getComponent((Class<?>) type.getRawType(), qualifier, null);
+    }
+
+    private Object getComponent(Class<?> clazz, Qualifier qualifier, Nullable nullable) {
+        try {
+            if (qualifier != null) {
+                return getComponent(qualifier.name(), clazz);
+            } else {
+                return getComponent(clazz);
+            }
+        } catch (UnsatisfiedComponentException e) {
+            if (nullable != null) {
+                return null;
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Invokes all the methods annotated with {@link javax.annotation.PostConstruct} annotation for the given instance.
+     *
+     * @param definition The {@code Definition} for the {@code Object} instance passed.
+     * @param instance The object instance to invoke the methods on.
+     */
+    private void processPostConstructors(Definition definition, Object instance) {
+        try {
+            for (Method postConstructorMethod : definition.getPostConstructorMethods()) {
+                logger.debug("Invoking post constructor method for class {}", definition.getClazz());
+                postConstructorMethod.invoke(instance);
+            }
+        } catch (IllegalAccessException e) {
+            // throw, unable to invoke post constructor
+        } catch (InvocationTargetException e) {
+            // throw, unable to invoke post constructor
+        }
     }
 }
