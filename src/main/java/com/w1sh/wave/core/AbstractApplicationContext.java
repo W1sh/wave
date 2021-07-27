@@ -3,6 +3,10 @@ package com.w1sh.wave.core;
 import com.w1sh.wave.core.annotation.Nullable;
 import com.w1sh.wave.core.annotation.Primary;
 import com.w1sh.wave.core.annotation.Qualifier;
+import com.w1sh.wave.core.binding.Lazy;
+import com.w1sh.wave.core.binding.LazyBinding;
+import com.w1sh.wave.core.binding.Provider;
+import com.w1sh.wave.core.binding.ProviderBinding;
 import com.w1sh.wave.core.exception.UnsatisfiedComponentException;
 import com.w1sh.wave.util.Annotations;
 import com.w1sh.wave.util.ReflectionUtils;
@@ -209,13 +213,14 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
     }
 
     private Object resolveParameterizedType(ParameterizedType type, AnnotationMetadata metadata) {
+        final Class<?> parameterizedClazz = (Class<?>) type.getActualTypeArguments()[0];
         if (type.getRawType().equals(Lazy.class)) {
-            final Supplier<?> supplier = () -> providers.get((Class<?>) type.getActualTypeArguments()[0]).singletonInstance();
+            final Supplier<?> supplier = () -> providers.get(parameterizedClazz).singletonInstance();
             return new LazyBinding<>(supplier);
         }
 
         if (type.getRawType().equals(Provider.class)) {
-            final Supplier<?> supplier = () -> providers.get((Class<?>) type.getActualTypeArguments()[0]).newInstance();
+            final Supplier<?> supplier = () -> providers.get(parameterizedClazz).newInstance();
             return new ProviderBinding<>(supplier);
         }
 
@@ -243,7 +248,7 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
      * Invokes all the methods annotated with {@link javax.annotation.PostConstruct} annotation for the given instance.
      *
      * @param definition The {@code Definition} for the {@code Object} instance passed.
-     * @param instance The object instance to invoke the methods on.
+     * @param instance   The object instance to invoke the methods on.
      */
     private void processPostConstructors(Definition definition, Object instance) {
         try {
