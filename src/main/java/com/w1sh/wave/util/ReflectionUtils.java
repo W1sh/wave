@@ -3,45 +3,15 @@ package com.w1sh.wave.util;
 import com.w1sh.wave.core.ConstructorInjectionPoint;
 import com.w1sh.wave.core.InjectionPoint;
 import com.w1sh.wave.core.MethodInjectionPoint;
-import com.w1sh.wave.core.annotation.Nullable;
-import com.w1sh.wave.core.annotation.Qualifier;
 import com.w1sh.wave.core.exception.ComponentCreationException;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public final class ReflectionUtils {
 
     private ReflectionUtils(){}
-
-    public static InjectionPoint injectionPointFromExecutable(Executable executable) {
-        final InjectionPoint injectionPoint = executable instanceof Constructor ?
-                new ConstructorInjectionPoint((Constructor<?>) executable) : new MethodInjectionPoint(((Method) executable));
-        if (executable.getParameterCount() == 0) {
-            return injectionPoint;
-        }
-
-        final var parameterTypes = executable.getGenericParameterTypes();
-        final var qualifiers = new Qualifier[executable.getParameterCount()];
-        final var nullables = new Nullable[executable.getParameterCount()];
-
-        for (var i = 0; i < parameterTypes.length; i++) {
-            for (Annotation annotation : executable.getParameterAnnotations()[i]) {
-                if (annotation instanceof Qualifier) {
-                    qualifiers[i] = (Qualifier) annotation;
-                } else if (annotation instanceof Nullable) {
-                    nullables[i] = (Nullable) annotation;
-                }
-            }
-        }
-        injectionPoint.setParameterTypes(parameterTypes);
-        injectionPoint.setQualifiers(qualifiers);
-        injectionPoint.setNullables(nullables);
-        return injectionPoint;
-    }
 
     public static <T> T newInstance(Class<T> clazz) {
         try {

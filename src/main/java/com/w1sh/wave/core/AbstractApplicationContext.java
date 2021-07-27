@@ -174,7 +174,7 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         instances.clear();
         namedInstances.clear();
     }
@@ -190,53 +190,49 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
 
     private Object createInstance(Definition definition) {
         if (definition.getInjectionPoint().getParameterTypes() == null) {
+            logger.debug("Creating new instance of class {}", definition.getClazz());
             return ReflectionUtils.newInstance(definition.getInjectionPoint(), new Object[]{});
         }
 
         final Object[] params = new Object[definition.getInjectionPoint().getParameterTypes().length];
         for (int i = 0; i < definition.getInjectionPoint().getParameterTypes().length; i++) {
             final Type paramType = definition.getInjectionPoint().getParameterTypes()[i];
-            final Qualifier qualifier = definition.getInjectionPoint().getQualifiers()[i];
-            final Nullable nullable = definition.getInjectionPoint().getNullables()[i];
+            final AnnotationMetadata metadata = definition.getInjectionPoint().getParameterAnnotationMetadata()[i];
 
             if (paramType instanceof ParameterizedType) {
-                params[i] = handleParameterizedType((ParameterizedType) paramType, qualifier);
+                params[i] = resolveParameterizedType((ParameterizedType) paramType, metadata);
             } else {
-                params[i] = getComponent((Class<?>) paramType, qualifier, nullable);
+                params[i] = resolvePossibleNullable((Class<?>) paramType, metadata);
             }
         }
         return ReflectionUtils.newInstance(definition.getInjectionPoint(), params);
     }
 
-    private Object handleParameterizedType(ParameterizedType type, Qualifier qualifier) {
+    private Object resolveParameterizedType(ParameterizedType type, AnnotationMetadata metadata) {
         if (type.getRawType().equals(Lazy.class)) {
-            if (qualifier != null) {
-                return new LazyBinding<>((Class<?>) type.getActualTypeArguments()[0], qualifier.name(), this);
-            } else {
-                return new LazyBinding<>((Class<?>) type.getActualTypeArguments()[0], this);
-            }
+            final Supplier<?> supplier = () -> providers.get((Class<?>) type.getActualTypeArguments()[0]).singletonInstance();
+            return new LazyBinding<>(supplier);
         }
 
         if (type.getRawType().equals(Provider.class)) {
-            if (qualifier != null) {
-                return new ProviderBinding<>((Class<?>) type.getActualTypeArguments()[0], qualifier.name(), this);
-            } else {
-                return new ProviderBinding<>((Class<?>) type.getActualTypeArguments()[0], this);
-            }
+            final Supplier<?> supplier = () -> providers.get((Class<?>) type.getActualTypeArguments()[0]).newInstance();
+            return new ProviderBinding<>(supplier);
         }
 
-        return getComponent((Class<?>) type.getRawType(), qualifier, null);
+        return resolvePossibleNullable((Class<?>) type.getRawType(), metadata);
     }
 
-    private Object getComponent(Class<?> clazz, Qualifier qualifier, Nullable nullable) {
+    private Object resolvePossibleNullable(Class<?> clazz, AnnotationMetadata metadata) {
         try {
-            if (qualifier != null) {
-                return getComponent(qualifier.name(), clazz);
+            if (metadata.hasAnnotation(Qualifier.class)) {
+                final var name = ((Qualifier) metadata.get(Qualifier.class)).name();
+                return getComponent(name, clazz);
             } else {
                 return getComponent(clazz);
             }
         } catch (UnsatisfiedComponentException e) {
-            if (nullable != null) {
+            logger.error("No injection candidate found for class {}", clazz);
+            if (metadata.hasAnnotation(Nullable.class)) {
                 return null;
             }
             throw e;

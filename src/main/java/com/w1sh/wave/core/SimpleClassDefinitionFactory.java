@@ -2,7 +2,6 @@ package com.w1sh.wave.core;
 
 import com.w1sh.wave.core.annotation.*;
 import com.w1sh.wave.util.Annotations;
-import com.w1sh.wave.util.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +16,7 @@ public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleClassDefinitionFactory.class);
     private final ComponentNameGenerator nameGenerator = new SimpleComponentNameGenerator();
+    private final InjectionPointFactory injectionPointFactory = new SimpleInjectionPointFactory();
 
     @Override
     public Definition create(Class<?> clazz) {
@@ -35,7 +35,7 @@ public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
         definition.setPrimary(Annotations.isAnnotationPresent(aClass, Primary.class));
         definition.setConditional(Annotations.isAnnotationPresent(aClass, Conditional.class));
         definition.setPriority((Priority) Annotations.getAnnotationOfType(aClass, Priority.class).orElse(null));
-        definition.setInjectionPoint(ReflectionUtils.injectionPointFromExecutable(constructor));
+        definition.setInjectionPoint(injectionPointFactory.create(constructor));
         definition.setName(nameGenerator.generate(aClass, aClass.getAnnotation(Component.class)));
 
         retrievePostConstructorMethods(aClass, definition);

@@ -9,12 +9,8 @@ public class LazyBinding<T> implements Lazy<T> {
     private final Supplier<T> supplier;
     private volatile T delegate;
 
-    public LazyBinding(Class<T> clazz, Registry context) {
-        this.supplier = () -> context.getComponent(clazz);
-    }
-
-    public LazyBinding(Class<T> clazz, String name, Registry context) {
-        this.supplier = () -> context.getComponent(name, clazz);
+    public LazyBinding(Supplier<T> supplier) {
+        this.supplier = supplier;
     }
 
     @Override
