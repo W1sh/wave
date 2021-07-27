@@ -215,13 +215,11 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
     private Object resolveParameterizedType(ParameterizedType type, AnnotationMetadata metadata) {
         final Class<?> parameterizedClazz = (Class<?>) type.getActualTypeArguments()[0];
         if (type.getRawType().equals(Lazy.class)) {
-            final Supplier<?> supplier = () -> providers.get(parameterizedClazz).singletonInstance();
-            return new LazyBinding<>(supplier);
+            return new LazyBinding<>(providers.get(parameterizedClazz));
         }
 
         if (type.getRawType().equals(Provider.class)) {
-            final Supplier<?> supplier = () -> providers.get(parameterizedClazz).newInstance();
-            return new ProviderBinding<>(supplier);
+            return new ProviderBinding<>(providers.get(parameterizedClazz));
         }
 
         return resolvePossibleNullable((Class<?>) type.getRawType(), metadata);
@@ -250,7 +248,7 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
      * @param definition The {@code Definition} for the {@code Object} instance passed.
      * @param instance   The object instance to invoke the methods on.
      */
-    private void processPostConstructors(Definition definition, Object instance) {
+    protected void processPostConstructors(Definition definition, Object instance) {
         try {
             for (Method postConstructorMethod : definition.getPostConstructorMethods()) {
                 logger.debug("Invoking post constructor method for class {}", definition.getClazz());

@@ -1,22 +1,22 @@
 package com.w1sh.wave.core.binding;
 
-import java.util.function.Supplier;
+import com.w1sh.wave.core.ObjectProvider;
 
 import static java.util.Objects.requireNonNull;
 
 public class LazyBinding<T> implements Lazy<T> {
 
-    private final Supplier<T> supplier;
+    private final ObjectProvider<T> provider;
     private volatile T delegate;
 
-    public LazyBinding(Supplier<T> supplier) {
-        this.supplier = supplier;
+    public LazyBinding(ObjectProvider<T> provider) {
+        this.provider = provider;
     }
 
     @Override
     public synchronized T get() {
         if (delegate == null) {
-            delegate = requireNonNull(supplier.get());
+            delegate = requireNonNull(provider.singletonInstance());
         }
         return delegate;
     }

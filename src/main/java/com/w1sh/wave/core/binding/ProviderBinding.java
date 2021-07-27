@@ -1,19 +1,19 @@
 package com.w1sh.wave.core.binding;
 
-import java.util.function.Supplier;
+import com.w1sh.wave.core.ObjectProvider;
 
 import static java.util.Objects.requireNonNull;
 
-public class ProviderBinding<T> implements Provider<T>{
+public class ProviderBinding<T> implements Provider<T> {
 
-    private final Supplier<T> supplier;
+    private final ObjectProvider<T> provider;
 
-    public ProviderBinding(Supplier<T> supplier) {
-        this.supplier = supplier;
+    public ProviderBinding(ObjectProvider<T> provider) {
+        this.provider = provider;
     }
 
     @Override
     public T get() {
-        return requireNonNull(supplier.get());
+        return requireNonNull(provider.newInstance());
     }
 }
