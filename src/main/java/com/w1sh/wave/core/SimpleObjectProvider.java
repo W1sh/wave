@@ -24,7 +24,9 @@ public class SimpleObjectProvider<T> implements ObjectProvider<T> {
 
     @Override
     public T newInstance() {
-        return Objects.requireNonNull(supplier.get());
+        final T instance = Objects.requireNonNull(supplier.get());
+        instances.add(instance);
+        return instance;
     }
 
     @Override
