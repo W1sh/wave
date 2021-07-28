@@ -15,7 +15,7 @@ import java.util.List;
 public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleClassDefinitionFactory.class);
-    private final ComponentNameGenerator nameGenerator = new SimpleComponentNameGenerator();
+    private final ComponentNameGenerator nameGenerator = new QualifiedComponentNameGenerator();
     private final InjectionPointFactory injectionPointFactory = new SimpleInjectionPointFactory();
 
     @Override
