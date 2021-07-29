@@ -1,33 +1,61 @@
 package com.w1sh.wave.core;
 
+import com.w1sh.wave.core.annotation.Nullable;
 import com.w1sh.wave.core.annotation.Primary;
+import com.w1sh.wave.core.annotation.Qualifier;
+import com.w1sh.wave.core.binding.Lazy;
+import com.w1sh.wave.core.binding.LazyBinding;
+import com.w1sh.wave.core.binding.Provider;
+import com.w1sh.wave.core.binding.ProviderBinding;
 import com.w1sh.wave.core.exception.UnsatisfiedComponentException;
 import com.w1sh.wave.util.Annotations;
+import com.w1sh.wave.util.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public abstract class AbstractApplicationContext implements Registry, Configurable {
+public abstract class AbstractApplicationContext implements Registry, Configurable, AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractApplicationContext.class);
 
-    private final Map<Class<?>, Object> instances;
-    private final Map<String, Object> namedInstances;
+    private final Map<String, Object> namedInstances = new ConcurrentHashMap<>(256);
+    private final Map<Class<?>, Definition> definitions = new ConcurrentHashMap<>(256);
+    private final Map<Class<?>, Object> instances = new ConcurrentHashMap<>(256);
+    private final Map<Class<?>, ObjectProvider<?>> providers = new ConcurrentHashMap<>(256);
 
     private AbstractApplicationEnvironment environment;
 
     protected AbstractApplicationContext() {
-        this.instances = new HashMap<>(255);
-        this.namedInstances = new HashMap<>(255);
         this.environment = ApplicationEnvironment.builder().build();
     }
 
     protected abstract void initialize();
+
+    @Override
+    public void register(Definition definition) {
+        final var clazz = definition.getClazz();
+        definitions.put(clazz, definition);
+
+        final var provider = createObjectProvider(definition);
+        providers.put(clazz, provider);
+
+        // early initialization of the singleton instance
+        final var instance = provider.singletonInstance();
+        if (!definition.getName().isBlank()) {
+            register(definition.getName(), instance);
+        }
+        register(clazz, instance);
+    }
 
     @Override
     public void register(Class<?> clazz, Object instance) {
@@ -123,12 +151,6 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
         return type != null && type.isAssignableFrom(clazz);
     }
 
-    @Override
-    public void clear() {
-        instances.clear();
-        namedInstances.clear();
-    }
-
     private <T> T resolveCandidates(Class<T> clazz, List<T> componentsOfType) {
         final List<T> primaryCandidates = componentsOfType.stream()
                 .filter(component -> Annotations.isAnnotationPresent(component.getClass(), Primary.class))
@@ -153,5 +175,89 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
     @Override
     public void setEnvironment(AbstractApplicationEnvironment environment) {
         this.environment = environment;
+    }
+
+    @Override
+    public void close() {
+        instances.clear();
+        namedInstances.clear();
+    }
+
+    private ObjectProvider<?> createObjectProvider(Definition definition) {
+        final Supplier<?> supplier = () -> {
+            final var instance = createInstance(definition);
+            processPostConstructors(definition, instance);
+            return instance;
+        };
+        return new SimpleObjectProvider<>(supplier);
+    }
+
+    private Object createInstance(Definition definition) {
+        if (definition.getInjectionPoint().getParameterTypes() == null) {
+            logger.debug("Creating new instance of class {}", definition.getClazz());
+            return ReflectionUtils.newInstance(definition.getInjectionPoint(), new Object[]{});
+        }
+
+        final Object[] params = new Object[definition.getInjectionPoint().getParameterTypes().length];
+        for (int i = 0; i < definition.getInjectionPoint().getParameterTypes().length; i++) {
+            final Type paramType = definition.getInjectionPoint().getParameterTypes()[i];
+            final AnnotationMetadata metadata = definition.getInjectionPoint().getParameterAnnotationMetadata()[i];
+
+            if (paramType instanceof ParameterizedType) {
+                params[i] = resolveParameterizedType((ParameterizedType) paramType, metadata);
+            } else {
+                params[i] = resolvePossibleNullable((Class<?>) paramType, metadata);
+            }
+        }
+        return ReflectionUtils.newInstance(definition.getInjectionPoint(), params);
+    }
+
+    private Object resolveParameterizedType(ParameterizedType type, AnnotationMetadata metadata) {
+        final Class<?> parameterizedClazz = (Class<?>) type.getActualTypeArguments()[0];
+        if (type.getRawType().equals(Lazy.class)) {
+            return new LazyBinding<>(providers.get(parameterizedClazz));
+        }
+
+        if (type.getRawType().equals(Provider.class)) {
+            return new ProviderBinding<>(providers.get(parameterizedClazz));
+        }
+
+        return resolvePossibleNullable((Class<?>) type.getRawType(), metadata);
+    }
+
+    private Object resolvePossibleNullable(Class<?> clazz, AnnotationMetadata metadata) {
+        try {
+            if (metadata.hasAnnotation(Qualifier.class)) {
+                final var name = ((Qualifier) metadata.get(Qualifier.class)).name();
+                return getComponent(name, clazz);
+            } else {
+                return getComponent(clazz);
+            }
+        } catch (UnsatisfiedComponentException e) {
+            logger.error("No injection candidate found for class {}", clazz);
+            if (metadata.hasAnnotation(Nullable.class)) {
+                return null;
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Invokes all the methods annotated with {@link javax.annotation.PostConstruct} annotation for the given instance.
+     *
+     * @param definition The {@code Definition} for the {@code Object} instance passed.
+     * @param instance   The object instance to invoke the methods on.
+     */
+    protected void processPostConstructors(Definition definition, Object instance) {
+        try {
+            for (Method postConstructorMethod : definition.getPostConstructorMethods()) {
+                logger.debug("Invoking post constructor method for class {}", definition.getClazz());
+                postConstructorMethod.invoke(instance);
+            }
+        } catch (IllegalAccessException e) {
+            // throw, unable to invoke post constructor
+        } catch (InvocationTargetException e) {
+            // throw, unable to invoke post constructor
+        }
     }
 }

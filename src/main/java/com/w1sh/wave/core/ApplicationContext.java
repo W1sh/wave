@@ -3,17 +3,17 @@ package com.w1sh.wave.core;
 import com.w1sh.wave.condition.ConditionalOnComponent;
 import com.w1sh.wave.condition.ConditionalOnMissingComponent;
 import com.w1sh.wave.condition.SimpleFilteringConditionalProcessor;
-import com.w1sh.wave.core.annotation.*;
+import com.w1sh.wave.core.annotation.Conditional;
+import com.w1sh.wave.core.annotation.Configuration;
+import com.w1sh.wave.core.annotation.Provides;
 import com.w1sh.wave.core.exception.UnsatisfiedComponentException;
 import com.w1sh.wave.util.Annotations;
-import com.w1sh.wave.util.ReflectionUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,7 +39,8 @@ public class ApplicationContext extends AbstractApplicationContext {
     }
 
     /**
-     * Register an instance for all the {@link Definition} provided within this context.
+     * Register an instance for all the {@link Definition} provided within this context. Will register definitions with
+     * higher priority first.
      *
      * @param definitions The {@code definitions} to register.
      */
@@ -47,9 +48,9 @@ public class ApplicationContext extends AbstractApplicationContext {
         final Map<Class<?>, Definition> classDefinitions = definitions.stream()
                 .collect(Collectors.toMap(Definition::getClazz, definition -> definition));
 
-        for (Definition definition : classDefinitions.values()) {
-            register(definition, classDefinitions);
-        }
+        definitions.stream()
+                .sorted(Comparator.comparingInt(definition -> definition.getPriority().value()))
+                .forEach(definition -> register(definition, classDefinitions));
     }
 
     /**
@@ -82,11 +83,8 @@ public class ApplicationContext extends AbstractApplicationContext {
 
         registerParameters(definition, definitions);
 
-        final var instance = createInstance(definition);
-        register(definition.getClazz(), instance);
-        if (!definition.getName().isBlank()) {
-            register(definition.getName(), instance);
-        }
+        register(definition);
+
         definition.setResolved();
     }
 
@@ -182,61 +180,6 @@ public class ApplicationContext extends AbstractApplicationContext {
             }
         }
         return candidates;
-    }
-
-    private Object createInstance(Definition definition) {
-        if (definition.getInjectionPoint().getParameterTypes() == null) {
-            return ReflectionUtils.newInstance(definition.getInjectionPoint(), new Object[]{});
-        }
-
-        final Object[] params = new Object[definition.getInjectionPoint().getParameterTypes().length];
-        for (int i = 0; i < definition.getInjectionPoint().getParameterTypes().length; i++) {
-            final Type paramType = definition.getInjectionPoint().getParameterTypes()[i];
-            final Qualifier qualifier = definition.getInjectionPoint().getQualifiers()[i];
-            final Nullable nullable = definition.getInjectionPoint().getNullables()[i];
-
-            if (paramType instanceof ParameterizedType) {
-                params[i] = handleParameterizedType((ParameterizedType) paramType, qualifier);
-            } else {
-                params[i] = getComponent((Class<?>) paramType, qualifier, nullable);
-            }
-        }
-        return ReflectionUtils.newInstance(definition.getInjectionPoint(), params);
-    }
-
-    private Object handleParameterizedType(ParameterizedType type, Qualifier qualifier) {
-        if (type.getRawType().equals(Lazy.class)) {
-            if (qualifier != null) {
-                return new LazyBinding<>((Class<?>) type.getActualTypeArguments()[0], qualifier.name(), this);
-            } else {
-                return new LazyBinding<>((Class<?>) type.getActualTypeArguments()[0], this);
-            }
-        }
-
-        if (type.getRawType().equals(Provider.class)) {
-            if (qualifier != null) {
-                return new ProviderBinding<>((Class<?>) type.getActualTypeArguments()[0], qualifier.name(), this);
-            } else {
-                return new ProviderBinding<>((Class<?>) type.getActualTypeArguments()[0], this);
-            }
-        }
-
-        return getComponent((Class<?>) type.getRawType(), qualifier, null);
-    }
-
-    private Object getComponent(Class<?> clazz, Qualifier qualifier, Nullable nullable) {
-        try {
-            if (qualifier != null) {
-                return getComponent(qualifier.name(), clazz);
-            } else {
-                return getComponent(clazz);
-            }
-        } catch (UnsatisfiedComponentException e) {
-            if (nullable != null) {
-                return null;
-            }
-            throw e;
-        }
     }
 
     public ComponentScanner getScanner() {

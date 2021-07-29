@@ -4,6 +4,8 @@ import java.util.List;
 
 public interface Registry {
 
+    void register(Definition definition);
+
     void register(Class<?> clazz, Object instance);
 
     void register(String name, Object instance);
@@ -25,9 +27,4 @@ public interface Registry {
     boolean containsComponent(Class<?> clazz);
 
     boolean containsComponent(Class<?> clazz, boolean allowSearchSubclasses);
-
-    /**
-     * Clears the registry of all the components and metadata
-     */
-    void clear();
 }

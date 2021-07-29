@@ -14,17 +14,16 @@ class SimpleClassDefinitionFactoryTest {
 
     @Test
     void should_ReturnComponentDefinition_WhenGivenComponentAnnotatedClass(){
-        final Definition definition =
-                definitionFactory.create(CalculatorServiceImpl.class);
+        final Definition definition = definitionFactory.create(CalculatorServiceImpl.class);
 
         assertComponentDefinitionIsProperlyDefined(definition);
         assertFalse(definition.isPrimary());
+        assertFalse(definition.isPriority());
     }
 
     @Test
     void should_ReturnComponentDefinition_WhenGivenLazyComponentAnnotatedClass(){
-        final Definition definition =
-                definitionFactory.create(DuplicateCalculatorServiceImpl.class);
+        final Definition definition = definitionFactory.create(DuplicateCalculatorServiceImpl.class);
 
         assertComponentDefinitionIsProperlyDefined(definition);
         assertFalse(definition.isPrimary());
@@ -32,8 +31,7 @@ class SimpleClassDefinitionFactoryTest {
 
     @Test
     void should_ReturnComponentDefinition_WhenGivenPrimaryComponentAnnotatedClass(){
-        final Definition definition =
-                definitionFactory.create(PrimaryCalculatorServiceImpl.class);
+        final Definition definition = definitionFactory.create(PrimaryCalculatorServiceImpl.class);
 
         assertComponentDefinitionIsProperlyDefined(definition);
         assertTrue(definition.isPrimary());
@@ -41,11 +39,11 @@ class SimpleClassDefinitionFactoryTest {
 
     @Test
     void should_ReturnComponentDefinition_WhenGivenComponentAnnotatedClassWithDependencies(){
-        final Definition definition =
-                definitionFactory.create(MerchantServiceImpl.class);
+        final Definition definition = definitionFactory.create(MerchantServiceImpl.class);
 
         assertComponentDefinitionIsProperlyDefined(definition);
         assertEquals(1, definition.getInjectionPoint().getParameterTypes().length);
+        assertNotNull(definition.getPriority());
         assertFalse(definition.isPrimary());
     }
 

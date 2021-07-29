@@ -1,9 +1,9 @@
 package com.w1sh.wave.example.service.impl;
 
-import com.w1sh.wave.core.Lazy;
-import com.w1sh.wave.core.Provider;
 import com.w1sh.wave.core.annotation.Component;
 import com.w1sh.wave.core.annotation.Inject;
+import com.w1sh.wave.core.binding.Lazy;
+import com.w1sh.wave.core.binding.Provider;
 import com.w1sh.wave.example.service.CalculatorService;
 import com.w1sh.wave.example.service.MerchantService;
 
