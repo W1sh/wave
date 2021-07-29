@@ -16,10 +16,6 @@ public class SimpleMethodDefinitionFactory implements MethodDefinitionFactory {
 
     @Override
     public Definition create(Method method) {
-        return toComponentDefinition(method);
-    }
-
-    private Definition toComponentDefinition(Method method) {
         logger.debug("Creating component definition from method {}.", method.getName());
         final var definition = new ComponentDefinition(method.getReturnType());
         definition.setPrimary(Annotations.isAnnotationPresent(method, Primary.class));
@@ -29,5 +25,4 @@ public class SimpleMethodDefinitionFactory implements MethodDefinitionFactory {
         definition.setName(method.getName());
         return definition;
     }
-
 }

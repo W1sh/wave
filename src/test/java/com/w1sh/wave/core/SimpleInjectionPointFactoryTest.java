@@ -6,6 +6,8 @@ import com.w1sh.wave.example.service.impl.PrimaryCalculatorServiceImpl;
 import com.w1sh.wave.example.service.impl.TestConfiguration;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -34,9 +36,11 @@ class SimpleInjectionPointFactoryTest {
 
     @Test
     void should_ReturnInjectionPoint_WhenGivenMethodFromConfigurationClass() throws NoSuchMethodException {
-        final InjectionPoint injectionPoint = injectionFactory.create(TestConfiguration.class.getDeclaredMethod("configurationDefinedMerchantService"));
+        final Method method = TestConfiguration.class.getDeclaredMethod("configurationDefinedMerchantService");
+        final InjectionPoint injectionPoint = injectionFactory.create(method);
 
         assertTrue(injectionPoint instanceof MethodInjectionPoint);
+        assertEquals(TestConfiguration.class, ((MethodInjectionPoint) injectionPoint).getMethod().getDeclaringClass());
         assertEquals(0, injectionPoint.getParameterTypes().length);
         assertEquals(0, injectionPoint.getParameterAnnotationMetadata().length);
     }

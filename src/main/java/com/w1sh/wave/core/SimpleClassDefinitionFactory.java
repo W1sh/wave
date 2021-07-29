@@ -20,25 +20,21 @@ public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
 
     @Override
     public Definition create(Class<?> clazz) {
-        return toComponentDefinition(clazz);
-    }
-
-    private Definition toComponentDefinition(Class<?> aClass) {
-        if (Modifier.isAbstract(aClass.getModifiers())) {
-            logger.warn("Can not convert abstract class {} into a definition.", aClass);
+        if (Modifier.isAbstract(clazz.getModifiers())) {
+            logger.warn("Can not convert abstract class {} into a definition.", clazz);
             return null;
         }
 
-        logger.debug("Creating component definition from class {}.", aClass);
-        final var definition = new ComponentDefinition(aClass);
-        final var constructor = findAnnotatedConstructor(aClass);
-        definition.setPrimary(Annotations.isAnnotationPresent(aClass, Primary.class));
-        definition.setConditional(Annotations.isAnnotationPresent(aClass, Conditional.class));
-        definition.setPriority((Priority) Annotations.getAnnotationOfType(aClass, Priority.class).orElse(null));
+        logger.debug("Creating component definition from class {}.", clazz);
+        final var definition = new ComponentDefinition(clazz);
+        final var constructor = findAnnotatedConstructor(clazz);
+        definition.setPrimary(Annotations.isAnnotationPresent(clazz, Primary.class));
+        definition.setConditional(Annotations.isAnnotationPresent(clazz, Conditional.class));
+        definition.setPriority((Priority) Annotations.getAnnotationOfType(clazz, Priority.class).orElse(null));
         definition.setInjectionPoint(injectionPointFactory.create(constructor));
-        definition.setName(nameGenerator.generate(aClass, aClass.getAnnotation(Component.class)));
+        definition.setName(nameGenerator.generate(clazz, clazz.getAnnotation(Component.class)));
 
-        retrievePostConstructorMethods(aClass, definition);
+        retrievePostConstructorMethods(clazz, definition);
         return definition;
     }
 
