@@ -16,7 +16,7 @@ public abstract class InjectionPoint {
     }
 
     public AnnotationMetadata[] getParameterAnnotationMetadata() {
-        return parameterAnnotationMetadata;
+        return parameterAnnotationMetadata != null ? parameterAnnotationMetadata : new AnnotationMetadata[0];
     }
 
     public void setParameterAnnotationMetadata(AnnotationMetadata[] parameterAnnotationMetadata) {

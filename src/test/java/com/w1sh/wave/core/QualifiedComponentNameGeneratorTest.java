@@ -1,6 +1,7 @@
 package com.w1sh.wave.core;
 
 import com.w1sh.wave.core.annotation.Component;
+import com.w1sh.wave.example.service.impl.TestClass;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,7 +15,7 @@ class QualifiedComponentNameGeneratorTest {
         Component component = TestClass.class.getAnnotation(Component.class);
         final String generatedName = nameGenerator.generate(TestClass.class, component);
 
-        assertEquals("com.w1sh.wave.core.namedComponent", generatedName);
+        assertEquals("com.w1sh.wave.example.service.impl.namedComponent", generatedName);
     }
 
     @Test
@@ -24,6 +25,4 @@ class QualifiedComponentNameGeneratorTest {
         assertEquals("com.w1sh.wave.core.QualifiedComponentNameGeneratorTest", generatedName);
     }
 
-    @Component(name = "namedComponent")
-    private static class TestClass { }
 }
