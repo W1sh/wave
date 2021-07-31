@@ -51,8 +51,9 @@ public abstract class AbstractApplicationContext implements Registry, Configurab
 
         // early initialization of the singleton instance
         final var instance = provider.singletonInstance();
-        if (!definition.getName().isBlank()) {
-            register(definition.getName(), instance);
+        register(definition.getName(), instance);
+        for (String alias : definition.getAliases()) {
+            register(alias, instance);
         }
         register(clazz, instance);
     }

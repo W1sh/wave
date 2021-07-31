@@ -33,7 +33,7 @@ public class SimpleClassDefinitionFactory implements ClassDefinitionFactory {
         definition.setPriority((Priority) Annotations.getAnnotationOfType(clazz, Priority.class).orElse(null));
         definition.setInjectionPoint(injectionPointFactory.create(constructor));
         definition.setName(nameGenerator.generate(clazz, clazz.getAnnotation(Component.class)));
-
+        definition.setAliases(clazz.getAnnotation(Component.class).aliases());
         retrievePostConstructorMethods(clazz, definition);
         return definition;
     }

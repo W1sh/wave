@@ -10,6 +10,7 @@ public abstract class Definition {
     private final Class<?> clazz;
     private InjectionPoint injectionPoint;
     private String name;
+    private String[] aliases;
     private boolean primary;
     private boolean conditional;
     private Priority priority;
@@ -90,6 +91,14 @@ public abstract class Definition {
 
     public void setPostConstructorMethods(List<Method> postConstructorMethods) {
         this.postConstructorMethods = postConstructorMethods;
+    }
+
+    public String[] getAliases() {
+        return aliases != null ? aliases : new String[0];
+    }
+
+    public void setAliases(String[] aliases) {
+        this.aliases = aliases;
     }
 
     private enum DefinitionStatus {

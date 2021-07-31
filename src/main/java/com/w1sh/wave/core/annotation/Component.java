@@ -11,4 +11,5 @@ public @interface Component {
 
     String name() default "";
 
+    String[] aliases() default {};
 }
