@@ -6,6 +6,7 @@ import com.w1sh.wave.condition.SimpleFilteringConditionalProcessor;
 import com.w1sh.wave.core.annotation.Conditional;
 import com.w1sh.wave.core.annotation.Configuration;
 import com.w1sh.wave.core.annotation.Provides;
+import com.w1sh.wave.core.exception.ComponentCreationException;
 import com.w1sh.wave.core.exception.UnsatisfiedComponentException;
 import com.w1sh.wave.util.Annotations;
 import org.reflections.Reflections;
@@ -124,7 +125,7 @@ public class ApplicationContext extends AbstractApplicationContext {
             register(definitions.get(declaringClass), definitions);
             injectionPoint.setInstanceConfigurationClass(getComponent(declaringClass));
         } else {
-            // throw, method injection point in non-configuration class
+            throw new ComponentCreationException("Method injection in a non-configuration class");
         }
     }
 
